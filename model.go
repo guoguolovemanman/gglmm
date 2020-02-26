@@ -6,9 +6,8 @@ import (
 
 // Model 基本模型类型
 type Model struct {
-	ID        int64      `gorm:"primary_key;" json:"id"`
+	ID        int64      `json:"id" gorm:"primary_key;"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
-	Status    int8       `gorm:"not null;" json:"status"`
 }

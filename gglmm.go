@@ -13,12 +13,14 @@ var basePath string
 var httpHandlerConfigs []*HTTPHandlerConfig
 var rpcHandlerConfigs []*RPCHandlerConfig
 
-// RegisterBasePath --
+// RegisterBasePath 注册基础路径
 func RegisterBasePath(path string) {
 	basePath = path
 }
 
-// RegisterHTTPHandler --
+// RegisterHTTPHandler 注册HTTP请求处理者
+// httpHandler 处理者
+// path 路径
 func RegisterHTTPHandler(httpHandler HTTPHandler, path string) *HTTPHandlerConfig {
 	if httpHandlerConfigs == nil {
 		httpHandlerConfigs = make([]*HTTPHandlerConfig, 0)
@@ -31,7 +33,9 @@ func RegisterHTTPHandler(httpHandler HTTPHandler, path string) *HTTPHandlerConfi
 	return config
 }
 
-// RegisterRPCHandler --
+// RegisterRPCHandler 注册RPC请求处理者
+// rpcHandler 处理者
+// name 名称
 func RegisterRPCHandler(rpcHandler RPCHandler, name string) *RPCHandlerConfig {
 	if rpcHandlerConfigs == nil {
 		rpcHandlerConfigs = make([]*RPCHandlerConfig, 0)
@@ -44,8 +48,8 @@ func RegisterRPCHandler(rpcHandler RPCHandler, name string) *RPCHandlerConfig {
 	return config
 }
 
-// GenerateRouter --
-func GenerateRouter() *mux.Router {
+// GenerateHttpRouter --
+func GenerateHttpRouter() *mux.Router {
 	if httpHandlerConfigs == nil || len(httpHandlerConfigs) == 0 {
 		return nil
 	}
@@ -108,7 +112,7 @@ func ListenAndServe(address string) {
 	log.Println("listen on: " + address)
 
 	if httpHandlerConfigs != nil && len(httpHandlerConfigs) >= 0 {
-		router := GenerateRouter()
+		router := GenerateHttpRouter()
 		http.Handle("/", router)
 	}
 
@@ -135,7 +139,7 @@ func ListenAndServe(address string) {
 func ListenAndServeConfig(config ConfigAPI) {
 	if !config.Check() {
 		log.Printf("%+v\n", config)
-		log.Fatal("APIConfig invalid")
+		log.Fatal("ConfigAPI invalid")
 	}
 	ListenAndServe(config.Address)
 }

@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-// DecodeFilterRequest 解码分页请求
+// DecodeFilterRequest 解码过滤请求
 func DecodeFilterRequest(r *http.Request) (FilterRequest, error) {
 	decoder := json.NewDecoder(r.Body)
 	filterRequest := FilterRequest{}

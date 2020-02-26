@@ -47,13 +47,13 @@ func TestModel1(t *testing.T) {
 	}
 
 	key := reflectSingleKey(rValue)
-	if key != "model" {
+	if key != "record" {
 		t.Log("reflectSingleKey")
 		t.Fail()
 	}
 
 	keys := reflectMultiKey(rValue)
-	if keys != "models" {
+	if keys != "records" {
 		t.Log("reflectMultiKey")
 		t.Fail()
 	}

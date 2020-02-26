@@ -16,8 +16,8 @@ func TestDecodeFilterRequest(t *testing.T) {
 		Order: "id",
 	}
 	query, _ := json.Marshal(filterRequest)
-	url := "/test?query=" + string(query)
-	request, err := http.NewRequest("GET", url, nil)
+	url := "/test"
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,8 +51,8 @@ func TestDecodePageRequest(t *testing.T) {
 		},
 	}
 	query, _ := json.Marshal(pageRequest)
-	url := "/test?query=" + string(query)
-	request, err := http.NewRequest("GET", url, nil)
+	url := "/test"
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
 		t.Fatal(err)
 	}

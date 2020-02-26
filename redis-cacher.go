@@ -21,34 +21,38 @@ var (
 	ErrConn = errors.New("连接错误")
 )
 
-// RedisCacher 缓存
+// RedisCacher Redis缓存 实现了Cacher接口
 type RedisCacher struct {
 	redisPool *redis.Pool
 	keyPrefix string
 }
 
 // RegisterRedisCacher 注册全局RedisCache
-func RegisterRedisCacher(network string, address string, maxActive int, maxIdle int, idleTimeout time.Duration) {
-	cacher = NewRedisCacher(network, address, maxActive, maxIdle, idleTimeout)
+func RegisterRedisCacher(network string, address string, maxActive int, maxIdle int, idleTimeout time.Duration) *RedisCacher {
+	redisCacher := NewRedisCacher(network, address, maxActive, maxIdle, idleTimeout)
+	cacher = redisCacher
+	return redisCacher
 }
 
 // RegisterRedisCacherConfig --
-func RegisterRedisCacherConfig(config ConfigRedis) {
+func RegisterRedisCacherConfig(config ConfigRedis) *RedisCacher {
 	if !config.Check() {
 		log.Printf("%+v\n", config)
-		log.Fatal("RedisConfig check invalid")
+		log.Fatal("ConfigRedis invalid")
 	}
 	idelTimeout, err := time.ParseDuration(fmt.Sprintf("%ds", config.IdelTimeout))
 	if err != nil {
 		log.Fatal(err)
 	}
-	cacher = NewRedisCacher(
+	redisCacher := NewRedisCacher(
 		config.Network,
 		config.Address,
 		config.MaxActive,
 		config.MaxIdel,
 		idelTimeout,
 	)
+	cacher = redisCacher
+	return redisCacher
 }
 
 // NewRedisCacher --

@@ -29,7 +29,10 @@ type Repository struct {
 
 // NewRepository 新建服务
 func NewRepository(model interface{}) *Repository {
-	return &Repository{modelType: reflect.TypeOf(model), modelValue: reflect.ValueOf(model)}
+	return &Repository{
+		modelType:  reflect.TypeOf(model),
+		modelValue: reflect.ValueOf(model),
+	}
 }
 
 // Begin 开始事务

@@ -95,12 +95,13 @@ func (config ConfigRPC) Check() bool {
 	return true
 }
 
-type configChecker interface {
+// ConfigChecker 配置检查
+type ConfigChecker interface {
 	Check() bool
 }
 
 // ParseConfigFile --
-func ParseConfigFile(file string, config configChecker) bool {
+func ParseConfigFile(file string, config ConfigChecker) bool {
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)

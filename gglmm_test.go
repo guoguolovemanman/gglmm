@@ -28,7 +28,7 @@ func TestHTTP(t *testing.T) {
 
 	RegisterHTTPHandler(&TestService{}, "/api")
 
-	router := GenerateRouter()
+	router := GenerateHttpRouter()
 
 	testResponse := httptest.NewRecorder()
 	testRequest, _ := http.NewRequest("GET", "/api/test", nil)

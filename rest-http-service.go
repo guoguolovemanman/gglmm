@@ -194,9 +194,9 @@ func (service *RESTHTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	if nil != service.filterFunc {
 		pageRequest.Filters = service.filterFunc(pageRequest.Filters, r)
 	}
-	pageResponse := &PageResponse{}
+	pageResponse := PageResponse{}
 	pageResponse.List = ReflectNewSliceOfPtrTo(service.repository.modelType)
-	if err = service.repository.Page(pageRequest, pageResponse); err != nil {
+	if err = service.repository.Page(pageRequest, &pageResponse); err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
 	}
