@@ -117,14 +117,15 @@ func ListenAndServe(address string) {
 	}
 
 	if rpcHandlerConfigs != nil && len(rpcHandlerConfigs) >= 0 {
-		info := RPCInfo{}
+
 		for _, config := range rpcHandlerConfigs {
 			rpc.RegisterName(config.Name, config.RPCHandler)
 
-			config.RPCHandler.Info("all", &info)
+			actions := []string{}
+			config.RPCHandler.Actions("all", &actions)
 
 			fmt.Println()
-			log.Printf("Name: %s; %s\n", config.Name, info.Info)
+			log.Printf("Name: %s; %s\n", config.Name, actions)
 		}
 		rpc.HandleHTTP()
 	}

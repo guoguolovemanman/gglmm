@@ -1,8 +1,5 @@
 package gglmm
 
-// GGLMMCacheKeyPrefix 缓存前缀
-const GGLMMCacheKeyPrefix = "gglmm-cache-"
-
 // Cacher 缓存接口
 type Cacher interface {
 	Name() string
@@ -25,6 +22,11 @@ type Cacher interface {
 }
 
 var cacher Cacher = nil
+
+// RegisterCacher --
+func RegisterCacher(cacherInstance Cacher) {
+	cacher = cacherInstance
+}
 
 // DefaultCacher 默认缓存
 func DefaultCacher() Cacher {
