@@ -2,7 +2,11 @@ package gglmm
 
 // Cacher 缓存接口
 type Cacher interface {
-	Name() string
+	SetExpires(expires int)
+	Expires() int
+
+	SetKeyPrefix(keyPrefix string)
+	KeyPrefix() string
 
 	SetEx(key string, value interface{}, ex int) error
 	Set(key string, value interface{}) error
@@ -16,15 +20,18 @@ type Cacher interface {
 	GetString(key string) (string, error)
 	GetObj(key string, obj interface{}) error
 
-	Del(key string) error
+	Del(key string) (int, error)
 
 	Close()
 }
 
 var cacher Cacher = nil
 
+const cacherKeyPrefix = "gglmm:"
+
 // RegisterCacher --
 func RegisterCacher(cacherInstance Cacher) {
+	cacherInstance.SetKeyPrefix(cacherKeyPrefix)
 	cacher = cacherInstance
 }
 

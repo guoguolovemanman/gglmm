@@ -17,8 +17,6 @@ var (
 	ErrSaveFailNotNewRecord = errors.New("保存失败，不是新记录")
 	// ErrUpdateFail --
 	ErrUpdateFail = errors.New("更新失败")
-	// ErrUpdateFailNotNewRecord --
-	ErrUpdateFailNotNewRecord = errors.New("更新失败，不是新记录")
 )
 
 // Repository 服务
@@ -52,7 +50,7 @@ func (repository *Repository) preloadDB(preloads []string) *gorm.DB {
 func (repository *Repository) Get(id int64, model interface{}, preloads []string) error {
 	if cacher != nil {
 		if reflectCache(repository.modelValue) {
-			cacheKey := repository.modelType.Name() + "#" + strconv.FormatInt(id, 10)
+			cacheKey := repository.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			if err := cacher.GetObj(cacheKey, model); err == nil {
 				return nil
 			}
@@ -69,7 +67,7 @@ func (repository *Repository) Get(id int64, model interface{}, preloads []string
 
 	if cacher != nil {
 		if reflectCache(repository.modelValue) {
-			cacheKey := repository.modelType.Name() + "#" + strconv.FormatInt(id, 10)
+			cacheKey := repository.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.Set(cacheKey, model)
 		}
 	}
@@ -146,7 +144,7 @@ func (repository *Repository) Update(id int64, model interface{}) error {
 
 	if cacher == nil {
 		if reflectCache(repository.modelValue) {
-			cacheKey := repository.modelType.Name() + "#" + strconv.FormatInt(id, 10)
+			cacheKey := repository.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.Del(cacheKey)
 		}
 	}
@@ -165,6 +163,14 @@ func (repository *Repository) Destroy(id int64, model interface{}) error {
 	if err := gormDB.Unscoped().First(model, id).Error; err != nil {
 		return err
 	}
+
+	if cacher == nil {
+		if reflectCache(repository.modelValue) {
+			cacheKey := repository.modelType.Name() + ":" + strconv.FormatInt(id, 10)
+			cacher.Del(cacheKey)
+		}
+	}
+
 	return nil
 }
 
@@ -176,5 +182,13 @@ func (repository *Repository) Restore(id int64, model interface{}) error {
 	if err := gormDB.First(model, id).Error; err != nil {
 		return err
 	}
+
+	if cacher == nil {
+		if reflectCache(repository.modelValue) {
+			cacheKey := repository.modelType.Name() + ":" + strconv.FormatInt(id, 10)
+			cacher.Del(cacheKey)
+		}
+	}
+
 	return nil
 }
