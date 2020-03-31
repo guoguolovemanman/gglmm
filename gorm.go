@@ -10,26 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var (
-	// ErrGormRecordNotFound --
-	ErrGormRecordNotFound = gorm.ErrRecordNotFound
-	// ErrFilterValueType --
-	ErrFilterValueType = errors.New("过滤值类型错误")
-	// ErrFilterValueSize --
-	ErrFilterValueSize = errors.New("过滤值大小错误")
-	// ErrFilterOperate --
-	ErrFilterOperate = errors.New("过滤操作错误")
-)
-
-var gormDB *gorm.DB = nil
-
-// RegisterGormDB 注册全局GormDB
-func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) {
-	gormDB = NewGormDB(dialect, url, maxOpen, maxIdle, connMaxLifetime)
-}
-
-// RegisterGormDBConfig --
-func RegisterGormDBConfig(config ConfigDB) {
+// NewGormDBConfig --
+func NewGormDBConfig(config ConfigDB) *gorm.DB {
 	if !config.Check() {
 		log.Printf("%+v\n", config)
 		log.Fatal("DBConfig invalid")
@@ -39,7 +21,7 @@ func RegisterGormDBConfig(config ConfigDB) {
 		log.Fatal(err)
 	}
 	url := config.User + ":" + config.Password + "@(" + config.Address + ")/" + config.Database + "?charset=utf8mb4&parseTime=true&loc=UTC"
-	gormDB = NewGormDB(
+	return NewGormDB(
 		config.Dialect,
 		url,
 		config.MaxOpen,
@@ -50,42 +32,32 @@ func RegisterGormDBConfig(config ConfigDB) {
 
 // NewGormDB --
 func NewGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) *gorm.DB {
-	gormDB, err := gorm.Open(dialect, url)
+	var err error
+	db, err := gorm.Open(dialect, url)
 	if err != nil {
 		panic(err)
 	}
 
-	gormDB.SingularTable(true)
+	db.SingularTable(true)
 
-	sqlDB := gormDB.DB()
+	sqlDB := db.DB()
 	sqlDB.SetMaxOpenConns(maxOpen)
 	sqlDB.SetMaxIdleConns(maxIdle)
 	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
-	return gormDB
+	return db
 }
 
-// CloseGormDB 关闭全局数据库连接
-func CloseGormDB() {
-	if gormDB != nil {
-		gormDB.Close()
-	}
-}
-
-// GormDB --
-func GormDB() *gorm.DB {
-	return gormDB
-}
-
-// GormBegin --
-func GormBegin() *gorm.DB {
-	return gormDB.Begin()
-}
-
-// GormNewRecord --
-func GormNewRecord(model interface{}) bool {
-	return gormDB.NewRecord(model)
-}
+var (
+	// ErrGormRecordNotFound --
+	ErrGormRecordNotFound = gorm.ErrRecordNotFound
+	// ErrFilterValueType --
+	ErrFilterValueType = errors.New("过滤值类型错误")
+	// ErrFilterValueSize --
+	ErrFilterValueSize = errors.New("过滤值大小错误")
+	// ErrFilterOperate --
+	ErrFilterOperate = errors.New("过滤操作错误")
+)
 
 func gormSetupFilterRequest(db *gorm.DB, filterRequest FilterRequest) (*gorm.DB, error) {
 	db, err := gormSetupFilters(db, filterRequest.Filters)
@@ -169,19 +141,23 @@ func gormSetupFilterLike(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 
 	fields := strings.Split(filter.Field, FilterSeparator)
 	values := strings.Split(stringValue, FilterSeparator)
-	var where = "("
+	var wheres = []string{}
 	var likes []interface{}
-	for index, field := range fields {
+
+	count := 0
+	wheres = append(wheres, "(")
+	for _, field := range fields {
 		for _, value := range values {
-			if index == 0 {
-				where += field + " like ?"
+			if count == 0 {
+				wheres = append(wheres, field, "like", "?")
 			} else {
-				where += " or " + field + " like ?"
+				wheres = append(wheres, "or", field, "like", "?")
 			}
 			likes = append(likes, "%"+value+"%")
+			count++
 		}
 	}
-	where += ")"
+	wheres = append(wheres, ")")
 
-	return db.Where(where, likes...), nil
+	return db.Where(strings.Join(wheres, " "), likes...), nil
 }

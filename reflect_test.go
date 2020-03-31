@@ -11,10 +11,6 @@ type Model1 struct {
 type Model2 struct {
 }
 
-func (test Model2) Preloads() []string {
-	return []string{"test"}
-}
-
 func (test Model2) Cache() bool {
 	return true
 }
@@ -23,61 +19,53 @@ func (test Model2) ResponseKey() [2]string {
 	return [...]string{"test", "tests"}
 }
 
-func TestModel1(t *testing.T) {
-	var model1 Model1
-	rType := reflect.TypeOf(model1)
-	rValue := reflect.ValueOf(model1)
+var model1 = Model1{}
+var model2 = Model2{}
 
-	model := ReflectNew(rType)
-	if _, ok := model.(*Model1); !ok {
-		t.Log("ReflectNew")
-		t.Fail()
+func TestReflectCache(t *testing.T) {
+	tests := []struct {
+		model  interface{}
+		result bool
+	}{
+		{model: model1, result: false},
+		{model: model2, result: true},
 	}
-
-	modleSlice := ReflectNewSliceOfPtrTo(rType)
-	if _, ok := modleSlice.(*[]*Model1); !ok {
-		t.Log("ReflectNewSliceOfPtrTo")
-		t.Fail()
-	}
-
-	cache := reflectCache(rValue)
-	if cache {
-		t.Log("reflectCache")
-		t.Fail()
-	}
-
-	key := reflectSingleKey(rValue)
-	if key != "record" {
-		t.Log("reflectSingleKey")
-		t.Fail()
-	}
-
-	keys := reflectMultiKey(rValue)
-	if keys != "records" {
-		t.Log("reflectMultiKey")
-		t.Fail()
+	for _, test := range tests {
+		result := ReflectCache(reflect.ValueOf(test.model))
+		if result != test.result {
+			t.Fatalf("fail: %v <=> %v\n", result, test.result)
+		}
 	}
 }
 
-func TestModel2(t *testing.T) {
-	var model2 Model2
-	rValue := reflect.ValueOf(model2)
-
-	cache := reflectCache(rValue)
-	if !cache {
-		t.Log("reflectCache")
-		t.Fail()
+func TestReflectSingleKey(t *testing.T) {
+	tests := []struct {
+		model  interface{}
+		result string
+	}{
+		{model: model1, result: "record"},
+		{model: model2, result: "test"},
 	}
-
-	key := reflectSingleKey(rValue)
-	if key != "test" {
-		t.Log("reflectSingleKey")
-		t.Fail()
+	for _, test := range tests {
+		result := ReflectSingleKey(reflect.ValueOf(test.model))
+		if result != test.result {
+			t.Fatalf("fail: %v <=> %v\n", result, test.result)
+		}
 	}
+}
 
-	keys := reflectMultiKey(rValue)
-	if keys != "tests" {
-		t.Log("reflectMultiKey")
-		t.Fail()
+func TestReflectMultiKey(t *testing.T) {
+	tests := []struct {
+		model  interface{}
+		result string
+	}{
+		{model: model1, result: "records"},
+		{model: model2, result: "tests"},
+	}
+	for _, test := range tests {
+		result := ReflectMultiKey(reflect.ValueOf(test.model))
+		if result != test.result {
+			t.Fatalf("fail: %v <=> %v\n", result, test.result)
+		}
 	}
 }

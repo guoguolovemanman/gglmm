@@ -99,7 +99,7 @@ func TestDecodeModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check := result.(*TestModel)
+	check := result.(TestModel)
 	if check.Key != test.Key || check.Value != test.Value {
 		t.Fatal(check)
 	}
@@ -124,8 +124,10 @@ func TestDecodeModelSlice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check := result.(*[]*TestModel)
-	if (*check)[0].Key != tests[0].Key || (*check)[0].Value != tests[0].Value {
-		t.Fatal(check)
+	t.Logf("%+v\n", result)
+
+	checks := result.([]TestModel)
+	if checks[0].Key != tests[0].Key || checks[0].Value != tests[0].Value {
+		t.Fatal(checks)
 	}
 }

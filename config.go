@@ -21,6 +21,23 @@ func (config ConfigAPI) Check() bool {
 	return true
 }
 
+// ConfigRPC --
+type ConfigRPC struct {
+	Network string
+	Address string
+}
+
+// Check --
+func (config ConfigRPC) Check() bool {
+	if config.Network == "" {
+		return false
+	}
+	if config.Address == "" {
+		return false
+	}
+	return true
+}
+
 // ConfigDB --
 type ConfigDB struct {
 	Dialect         string
@@ -51,23 +68,6 @@ func (config ConfigDB) Check() bool {
 		return false
 	}
 	log.Println("config db check valid")
-	return true
-}
-
-// ConfigRPC --
-type ConfigRPC struct {
-	Network string
-	Address string
-}
-
-// Check --
-func (config ConfigRPC) Check() bool {
-	if config.Network == "" {
-		return false
-	}
-	if config.Address == "" {
-		return false
-	}
 	return true
 }
 

@@ -21,13 +21,14 @@ type Cacher interface {
 	GetObj(key string, obj interface{}) error
 
 	Del(key string) (int, error)
+	DelPattern(pattern string) (int, error)
 
 	Close()
 }
 
 var cacher Cacher = nil
 
-const cacherKeyPrefix = "gglmm:"
+const cacherKeyPrefix = "GGLMM:"
 
 // RegisterCacher --
 func RegisterCacher(cacherInstance Cacher) {
