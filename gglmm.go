@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -121,11 +122,15 @@ func ListenAndServe(address string) {
 		for _, config := range rpcHandlerConfigs {
 			rpc.RegisterName(config.Name, config.RPCHandler)
 
-			actions := []string{}
-			config.RPCHandler.Actions("all", &actions)
+			rpcActionInfos := []RPCActionInfo{}
+			config.RPCHandler.Actions("all", &rpcActionInfos)
 
 			fmt.Println()
-			log.Printf("Name: %s; %s\n", config.Name, actions)
+			rpcInfos := []string{}
+			for _, info := range rpcActionInfos {
+				rpcInfos = append(rpcInfos, info.String())
+			}
+			log.Printf("%s: %s\n", config.Name, strings.Join(rpcInfos, "; "))
 		}
 		rpc.HandleHTTP()
 	}

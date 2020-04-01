@@ -7,6 +7,15 @@ import (
 	"reflect"
 )
 
+// Decode 解码请求体
+func Decode(r *http.Request, body interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(body); err != nil {
+		return err
+	}
+	return nil
+}
+
 // DecodeFilterRequest 解码过滤请求
 func DecodeFilterRequest(r *http.Request) (FilterRequest, error) {
 	decoder := json.NewDecoder(r.Body)
@@ -36,14 +45,14 @@ func DecodePageRequest(r *http.Request) (PageRequest, error) {
 	return pageRequest, nil
 }
 
-// DecodeModelPtr 解码模型
+// DecodeModelPtr 解码模型指针
 func DecodeModelPtr(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	decoder := json.NewDecoder(r.Body)
-	model := reflect.New(modelType)
-	if err := decoder.Decode(model.Interface()); err != nil {
+	model := reflect.New(modelType).Interface()
+	if err := decoder.Decode(model); err != nil {
 		return nil, err
 	}
-	return model.Interface(), nil
+	return model, nil
 }
 
 // DecodeModel 解码模型
@@ -56,14 +65,14 @@ func DecodeModel(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	return model.Elem().Interface(), nil
 }
 
-// DecodeModelSlicePtr 解码模型列表
+// DecodeModelSlicePtr 解码模型列表指针
 func DecodeModelSlicePtr(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	decoder := json.NewDecoder(r.Body)
-	list := reflect.New(reflect.SliceOf(modelType))
-	if err := decoder.Decode(list.Interface()); err != nil {
+	list := reflect.New(reflect.SliceOf(modelType)).Interface()
+	if err := decoder.Decode(list); err != nil {
 		return nil, err
 	}
-	return list.Interface(), nil
+	return list, nil
 }
 
 // DecodeModelSlice 解码模型列表

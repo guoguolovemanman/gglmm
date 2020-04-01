@@ -144,7 +144,7 @@ func (service *RESTHTTPService) RESTAction(restAction RESTAction) (*HTTPAction, 
 
 // GetByID 单个
 func (service *RESTHTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxParseVarID(r)
+	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
@@ -274,7 +274,7 @@ func (service *RESTHTTPService) Store(w http.ResponseWriter, r *http.Request) {
 
 // Update 更新
 func (service *RESTHTTPService) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxParseVarID(r)
+	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
@@ -308,7 +308,7 @@ func (service *RESTHTTPService) Update(w http.ResponseWriter, r *http.Request) {
 
 // Destory 删除
 func (service *RESTHTTPService) Destory(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxParseVarID(r)
+	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
@@ -331,7 +331,7 @@ func (service *RESTHTTPService) Destory(w http.ResponseWriter, r *http.Request) 
 
 // Restore 恢复
 func (service *RESTHTTPService) Restore(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxParseVarID(r)
+	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return

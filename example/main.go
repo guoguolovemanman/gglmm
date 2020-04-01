@@ -38,11 +38,17 @@ func NewRPCTestService() *RPCTestService {
 }
 
 // Actions --
-func (service *RPCTestService) Actions(cmd string, actions *[]string) error {
-	*actions = []string{
-		"Get(int64, *Test)",
-		"List(gglmm.FilterRequest, *[]Test)",
-	}
+func (service *RPCTestService) Actions(cmd string, actionInfos *[]gglmm.RPCActionInfo) error {
+	*actionInfos = append(*actionInfos, gglmm.RPCActionInfo{
+		Name:     "Get",
+		Request:  "string",
+		Response: "*Test",
+	})
+	*actionInfos = append(*actionInfos, gglmm.RPCActionInfo{
+		Name:     "List",
+		Request:  "gglmm.FilterRequest",
+		Response: "*[]Test",
+	})
 	return nil
 }
 
@@ -108,7 +114,6 @@ func beforeStore(model interface{}) interface{} {
 }
 
 func beforeUpdate(model interface{}, id int64) (interface{}, int64) {
-	log.Printf("%#v %d\n", model, id)
 	test, ok := model.(*Test)
 	if !ok {
 		return nil, 0
