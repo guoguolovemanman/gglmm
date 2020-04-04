@@ -2,47 +2,67 @@ package gglmm
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
-// Decode 解码请求体
-func Decode(r *http.Request, body interface{}) error {
+// DecodeIDRequest 解码ID请求
+func DecodeIDRequest(r *http.Request) (IDRequest, error) {
+	var id int64
+	idRequest := IDRequest{}
+	id, err := MuxVarID(r)
+	if err != nil {
+		idQuery := r.FormValue("id")
+		if idQuery == "" {
+			return idRequest, errors.New("not found id")
+		}
+		id, err = strconv.ParseInt(idQuery, 10, 64)
+		if err != nil {
+			return idRequest, err
+		}
+	}
+	idRequest.ID = id
+	preloads := []string{}
+	preloadsQuery := r.FormValue("preloads")
+	if preloadsQuery != "" {
+		preloads = append(preloads, strings.Split(preloadsQuery, ",")...)
+	}
+	idRequest.Preloads = preloads
+	return idRequest, nil
+}
+
+// DecodeBody 解码请求体
+func DecodeBody(r *http.Request, body interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(body); err != nil {
-		return err
+		if err != io.EOF {
+			return err
+		}
 	}
 	return nil
 }
 
 // DecodeFilterRequest 解码过滤请求
 func DecodeFilterRequest(r *http.Request) (FilterRequest, error) {
-	decoder := json.NewDecoder(r.Body)
 	filterRequest := FilterRequest{}
-	if err := decoder.Decode(&filterRequest); err != nil {
-		if err != io.EOF {
-			return filterRequest, err
-		}
-	}
-	return filterRequest, nil
+	err := DecodeBody(r, &filterRequest)
+	return filterRequest, err
 }
 
 // DecodePageRequest 解码分页请求
 func DecodePageRequest(r *http.Request) (PageRequest, error) {
-	decoder := json.NewDecoder(r.Body)
 	pageRequest := PageRequest{
 		Pagination: Pagination{
 			PageSize:  DefaultPageSize,
 			PageIndex: FirstPageIndex,
 		},
 	}
-	if err := decoder.Decode(&pageRequest); err != nil {
-		if err != io.EOF {
-			return pageRequest, err
-		}
-	}
-	return pageRequest, nil
+	err := DecodeBody(r, &pageRequest)
+	return pageRequest, err
 }
 
 // DecodeModelPtr 解码模型指针

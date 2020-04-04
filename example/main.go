@@ -77,7 +77,7 @@ func main() {
 
 	gglmm.RegisterBasePath("/api/example")
 
-	testHTTPService := gglmm.NewRESTHTTPService(Test{})
+	testHTTPService := gglmm.NewHTTPService(Test{})
 	testHTTPService.HandleBeforeStoreFunc(beforeStore)
 	testHTTPService.HandleBeforeUpdateFunc(beforeUpdate)
 	gglmm.RegisterHTTPHandler(testHTTPService, "/test").

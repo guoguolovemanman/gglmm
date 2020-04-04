@@ -8,8 +8,31 @@ import (
 	"testing"
 )
 
+func TestDecodeIDRequest(t *testing.T) {
+	url := "/test?id=1&preloads=a,b"
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resultRequest, err := DecodeIDRequest(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resultRequest.ID != 1 {
+		t.Fatal(resultRequest)
+	}
+	if len(resultRequest.Preloads) != 2 {
+		t.Fatal(resultRequest)
+	}
+	if resultRequest.Preloads[0] != "a" || resultRequest.Preloads[1] != "b" {
+		t.Fatal(resultRequest)
+	}
+}
+
 func TestDecodeFilterRequest(t *testing.T) {
-	filterRequest := &FilterRequest{
+	filterRequest := FilterRequest{
 		Filters: []Filter{
 			Filter{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 		},
@@ -37,7 +60,7 @@ func TestDecodeFilterRequest(t *testing.T) {
 }
 
 func TestDecodePageRequest(t *testing.T) {
-	pageRequest := &PageRequest{
+	pageRequest := PageRequest{
 		FilterRequest: FilterRequest{
 			Filters: []Filter{
 				Filter{Field: "A", Operate: FilterOperateEqual, Value: "B"},
@@ -123,8 +146,6 @@ func TestDecodeModelSlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Logf("%+v\n", result)
 
 	checks := result.([]TestModel)
 	if checks[0].Key != tests[0].Key || checks[0].Value != tests[0].Value {

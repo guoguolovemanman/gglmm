@@ -58,8 +58,8 @@ type BeforeStoreFunc func(model interface{}) interface{}
 // BeforeUpdateFunc 更新前调用
 type BeforeUpdateFunc func(model interface{}, id int64) (interface{}, int64)
 
-// RESTHTTPService HTTP服务
-type RESTHTTPService struct {
+// HTTPService HTTP服务
+type HTTPService struct {
 	modelType        reflect.Type
 	modelValue       reflect.Value
 	filterFunc       FilterFunc
@@ -67,39 +67,39 @@ type RESTHTTPService struct {
 	beforeUpdateFunc BeforeUpdateFunc
 }
 
-// NewRESTHTTPService 新建HTTP服务
-func NewRESTHTTPService(model interface{}) *RESTHTTPService {
+// NewHTTPService 新建HTTP服务
+func NewHTTPService(model interface{}) *HTTPService {
 	if gormRepository == nil {
 		log.Fatal(ErrGormRepositoryNotRegister)
 	}
-	return &RESTHTTPService{
+	return &HTTPService{
 		modelType:  reflect.TypeOf(model),
 		modelValue: reflect.ValueOf(model),
 	}
 }
 
 // HandleFilterFunc 设置过滤参数函数
-func (service *RESTHTTPService) HandleFilterFunc(handler FilterFunc) {
+func (service *HTTPService) HandleFilterFunc(handler FilterFunc) {
 	service.filterFunc = handler
 }
 
 // HandleBeforeStoreFunc 设置保存前执行函数
-func (service *RESTHTTPService) HandleBeforeStoreFunc(handler BeforeStoreFunc) {
+func (service *HTTPService) HandleBeforeStoreFunc(handler BeforeStoreFunc) {
 	service.beforeStoreFunc = handler
 }
 
 // HandleBeforeUpdateFunc 设置更新前执行函数
-func (service *RESTHTTPService) HandleBeforeUpdateFunc(handler BeforeUpdateFunc) {
+func (service *HTTPService) HandleBeforeUpdateFunc(handler BeforeUpdateFunc) {
 	service.beforeUpdateFunc = handler
 }
 
 // CustomActions --
-func (service *RESTHTTPService) CustomActions() ([]*HTTPAction, error) {
+func (service *HTTPService) CustomActions() ([]*HTTPAction, error) {
 	return nil, nil
 }
 
 // RESTAction --
-func (service *RESTHTTPService) RESTAction(restAction RESTAction) (*HTTPAction, error) {
+func (service *HTTPService) RESTAction(restAction RESTAction) (*HTTPAction, error) {
 	var path string
 	var handlerFunc http.HandlerFunc
 	var method string
@@ -143,19 +143,18 @@ func (service *RESTHTTPService) RESTAction(restAction RESTAction) (*HTTPAction, 
 }
 
 // GetByID 单个
-func (service *RESTHTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxVarID(r)
+func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
+	idRequest, err := DecodeIDRequest(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	preloads := parseQueryPreloads(r)
 	if cacher != nil {
 		if ReflectCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			if len(preloads) > 0 {
-				cacheKey = cacheKey + ":" + strings.Join(preloads, "-")
+			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
+			if len(idRequest.Preloads) > 0 {
+				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
 			}
 			if err := cacher.GetObj(cacheKey, model); err == nil {
 				NewSuccessResponse().
@@ -165,19 +164,15 @@ func (service *RESTHTTPService) GetByID(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 	}
-	idReuest := IDRequest{
-		ID:       id,
-		Preloads: preloads,
-	}
-	if err = gormRepository.Get(model, idReuest); err != nil {
+	if err = gormRepository.Get(model, idRequest); err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
 	}
 	if cacher != nil {
 		if ReflectCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			if len(preloads) > 0 {
-				cacheKey = cacheKey + ":" + strings.Join(preloads, "-")
+			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
+			if len(idRequest.Preloads) > 0 {
+				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
 			}
 			cacher.Set(cacheKey, model)
 		}
@@ -188,7 +183,7 @@ func (service *RESTHTTPService) GetByID(w http.ResponseWriter, r *http.Request) 
 }
 
 // First 单个
-func (service *RESTHTTPService) First(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -208,7 +203,7 @@ func (service *RESTHTTPService) First(w http.ResponseWriter, r *http.Request) {
 }
 
 // List 列表
-func (service *RESTHTTPService) List(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -228,7 +223,7 @@ func (service *RESTHTTPService) List(w http.ResponseWriter, r *http.Request) {
 }
 
 // Page 分页
-func (service *RESTHTTPService) Page(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageRequest, err := DecodePageRequest(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -250,7 +245,7 @@ func (service *RESTHTTPService) Page(w http.ResponseWriter, r *http.Request) {
 }
 
 // Store 保存
-func (service *RESTHTTPService) Store(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -273,7 +268,7 @@ func (service *RESTHTTPService) Store(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update 更新
-func (service *RESTHTTPService) Update(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -307,7 +302,7 @@ func (service *RESTHTTPService) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Destory 删除
-func (service *RESTHTTPService) Destory(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
@@ -330,7 +325,7 @@ func (service *RESTHTTPService) Destory(w http.ResponseWriter, r *http.Request) 
 }
 
 // Restore 恢复
-func (service *RESTHTTPService) Restore(w http.ResponseWriter, r *http.Request) {
+func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 	id, err := MuxVarID(r)
 	if err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)

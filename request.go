@@ -2,8 +2,6 @@ package gglmm
 
 import (
 	"errors"
-	"net/http"
-	"strings"
 )
 
 // FilterOperate 过滤操作
@@ -83,12 +81,4 @@ type Pagination struct {
 type PageRequest struct {
 	FilterRequest
 	Pagination
-}
-
-func parseQueryPreloads(r *http.Request) []string {
-	preloadsQuery := r.FormValue("preloads")
-	if preloadsQuery == "" {
-		return nil
-	}
-	return strings.Split(preloadsQuery, ",")
 }
