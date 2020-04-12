@@ -23,8 +23,10 @@ const (
 	RESTActionPage
 	// RESTActionStore 保存
 	RESTActionStore
-	// RESTActionUpdate 更新
+	// RESTActionUpdate 更新整体
 	RESTActionUpdate
+	// RESTActionUpdateFields 更新多个字段
+	RESTActionUpdateFields
 	// RESTActionDestory 软删除
 	RESTActionDestory
 	// RESTActionRestore 恢复
@@ -38,13 +40,13 @@ var (
 	// RESTRead 读操作
 	RESTRead = []RESTAction{RESTActionGetByID, RESTActionFirst, RESTActionList, RESTActionPage}
 	// RESTWrite 写操作
-	RESTWrite = []RESTAction{RESTActionStore, RESTActionUpdate}
+	RESTWrite = []RESTAction{RESTActionStore, RESTActionUpdate, RESTActionUpdateFields}
 	// RESTDelete 删除操作
 	RESTDelete = []RESTAction{RESTActionDestory, RESTActionRestore}
 	// RESTAdmin 管理操作
 	RESTAdmin = []RESTAction{RESTActionList, RESTActionPage, RESTActionStore, RESTActionUpdate, RESTActionDestory, RESTActionRestore}
 	// RESTAll 全部操作
-	RESTAll = []RESTAction{RESTActionGetByID, RESTActionFirst, RESTActionList, RESTActionPage, RESTActionStore, RESTActionUpdate, RESTActionDestory, RESTActionRestore}
+	RESTAll = []RESTAction{RESTActionGetByID, RESTActionFirst, RESTActionList, RESTActionPage, RESTActionStore, RESTActionUpdate, RESTActionUpdateFields, RESTActionDestory, RESTActionRestore}
 	// ErrAction --
 	ErrAction = errors.New("不支持Action")
 )
@@ -53,10 +55,10 @@ var (
 type FilterFunc func(filters []Filter, r *http.Request) []Filter
 
 // BeforeStoreFunc 保存前调用
-type BeforeStoreFunc func(model interface{}) interface{}
+type BeforeStoreFunc func(model interface{}) (interface{}, error)
 
 // BeforeUpdateFunc 更新前调用
-type BeforeUpdateFunc func(model interface{}, id int64) (interface{}, int64)
+type BeforeUpdateFunc func(model interface{}, id int64) (interface{}, int64, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
@@ -126,6 +128,10 @@ func (service *HTTPService) RESTAction(restAction RESTAction) (*HTTPAction, erro
 	case RESTActionUpdate:
 		path = "/" + IDRegexp
 		handlerFunc = service.Update
+		method = "PUT"
+	case RESTActionUpdateFields:
+		path = "/" + IDRegexp + "/fields"
+		handlerFunc = service.UpdateFields
 		method = "PUT"
 	case RESTActionDestory:
 		path = "/" + IDRegexp
@@ -252,9 +258,9 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if service.beforeStoreFunc != nil {
-		model = service.beforeStoreFunc(model)
-		if model == nil {
-			NewFailResponse("重设失败").WriteJSON(w)
+		model, err = service.beforeStoreFunc(model)
+		if err != nil {
+			NewFailResponse(err.Error()).WriteJSON(w)
 			return
 		}
 	}
@@ -267,7 +273,7 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 		WriteJSON(w)
 }
 
-// Update 更新
+// Update 更新整体
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := MuxVarID(r)
 	if err != nil {
@@ -280,13 +286,52 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if service.beforeUpdateFunc != nil {
-		model, id = service.beforeUpdateFunc(model, id)
-		if model == nil || id == 0 {
-			NewFailResponse("重设失败").WriteJSON(w)
+		model, id, err = service.beforeUpdateFunc(model, id)
+		if err != nil {
+			NewFailResponse(err.Error()).WriteJSON(w)
 			return
 		}
 	}
 	if err = gormRepository.Update(model, id); err != nil {
+		NewFailResponse(err.Error()).WriteJSON(w)
+		return
+	}
+	if cacher != nil {
+		if ReflectCache(service.modelValue) {
+			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
+			cacher.DelPattern(cacheKey)
+		}
+	}
+	NewSuccessResponse().
+		AddData(ReflectSingleKey(service.modelValue), model).
+		WriteJSON(w)
+}
+
+// UpdateFields 更新整体
+func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request) {
+	id, err := MuxVarID(r)
+	if err != nil {
+		NewFailResponse(err.Error()).WriteJSON(w)
+		return
+	}
+	model := reflect.New(service.modelType).Interface()
+	if err := gormRepository.Get(model, id); err != nil {
+		NewFailResponse(err.Error()).WriteJSON(w)
+		return
+	}
+	fields, err := DecodeModelPtr(r, service.modelType)
+	if err != nil {
+		NewFailResponse(err.Error()).WriteJSON(w)
+		return
+	}
+	if service.beforeUpdateFunc != nil {
+		fields, id, err = service.beforeUpdateFunc(fields, id)
+		if err != nil {
+			NewFailResponse(err.Error()).WriteJSON(w)
+			return
+		}
+	}
+	if err = gormRepository.UpdateFields(model, fields); err != nil {
 		NewFailResponse(err.Error()).WriteJSON(w)
 		return
 	}

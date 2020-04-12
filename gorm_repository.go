@@ -61,15 +61,20 @@ func (repository *GormRepository) preloadDB(preloads []string) *gorm.DB {
 // Get --
 func (repository *GormRepository) Get(model interface{}, request interface{}) error {
 	if idRequest, ok := request.(IDRequest); ok {
-		return repository.GetByID(model, idRequest)
+		return repository.getByID(model, idRequest)
 	} else if filterRequest, ok := request.(FilterRequest); ok {
-		return repository.GetByFilter(model, filterRequest)
+		return repository.getByFilter(model, filterRequest)
+	} else if id, ok := request.(int64); ok {
+		idRequest := IDRequest{
+			ID: id,
+		}
+		return repository.getByID(model, idRequest)
 	}
 	return ErrParams
 }
 
-// GetByID 通过ID单个查询
-func (repository *GormRepository) GetByID(model interface{}, idRequest IDRequest) error {
+// getByID 通过ID单个查询
+func (repository *GormRepository) getByID(model interface{}, idRequest IDRequest) error {
 	db := repository.preloadDB(idRequest.Preloads)
 	if err := db.First(model, idRequest.ID).Error; err != nil {
 		return err
@@ -80,8 +85,8 @@ func (repository *GormRepository) GetByID(model interface{}, idRequest IDRequest
 	return nil
 }
 
-// GetByFilter 根据条件单个查询
-func (repository *GormRepository) GetByFilter(model interface{}, filterRequest FilterRequest) error {
+// getByFilter 根据条件单个查询
+func (repository *GormRepository) getByFilter(model interface{}, filterRequest FilterRequest) error {
 	db := repository.preloadDB(filterRequest.Preloads)
 	db, err := gormSetupFilterRequest(db, filterRequest)
 	if err != nil {
@@ -140,12 +145,24 @@ func (repository *GormRepository) Store(model interface{}) error {
 func (repository *GormRepository) Update(model interface{}, id int64) error {
 	modelID := repository.ID(model)
 	if modelID != id {
-		return ErrUpdateFailID
+		return ErrParams
 	}
 	if err := repository.Save(model).Error; err != nil {
 		return err
 	}
 	if err := repository.First(model, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateFields 更新多个属性
+func (repository *GormRepository) UpdateFields(model interface{}, fields interface{}) error {
+	modelID := repository.ID(model)
+	if err := repository.Model(model).Updates(fields).Error; err != nil {
+		return err
+	}
+	if err := repository.First(model, modelID).Error; err != nil {
 		return err
 	}
 	return nil

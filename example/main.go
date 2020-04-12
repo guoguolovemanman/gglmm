@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"net/rpc"
@@ -103,23 +104,23 @@ func middlewareFunc(next http.Handler) http.Handler {
 	})
 }
 
-func beforeStore(model interface{}) interface{} {
+func beforeStore(model interface{}) (interface{}, error) {
 	log.Printf("%#v\n", model)
 	test, ok := model.(*Test)
 	if !ok {
-		return nil
+		return nil, errors.New("type error")
 	}
 	test.StringValue = "string"
-	return test
+	return test, nil
 }
 
-func beforeUpdate(model interface{}, id int64) (interface{}, int64) {
+func beforeUpdate(model interface{}, id int64) (interface{}, int64, error) {
 	test, ok := model.(*Test)
 	if !ok {
-		return nil, 0
+		return nil, 0, errors.New("type error")
 	}
 	test.StringValue = "string"
-	return test, id
+	return test, id, nil
 }
 
 func testRPC() {
