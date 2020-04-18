@@ -14,7 +14,7 @@ import (
 func DecodeIDRequest(r *http.Request) (IDRequest, error) {
 	var id int64
 	idRequest := IDRequest{}
-	id, err := MuxVarID(r)
+	id, err := PathVarID(r)
 	if err != nil {
 		idQuery := r.FormValue("id")
 		if idQuery == "" {

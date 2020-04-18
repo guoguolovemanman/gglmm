@@ -21,31 +21,28 @@ func NewHTTPAction(path string, handlerFunc http.HandlerFunc, method string) *HT
 // HTTPHandler 提供HTTP服务接口
 type HTTPHandler interface {
 	CustomActions() ([]*HTTPAction, error)
-	RESTAction(action RESTAction) (*HTTPAction, error)
+	Action(action string) (*HTTPAction, error)
 }
 
 // HTTPHandlerConfig --
 type HTTPHandlerConfig struct {
 	HTTPHandler HTTPHandler
 	Path        string
-	RESTActions []RESTAction
+	Actions     []string
 	Middlewares []Middleware
 }
 
-// RESTAction --
-func (config *HTTPHandlerConfig) RESTAction(param interface{}) *HTTPHandlerConfig {
-	if config.RESTActions == nil {
-		config.RESTActions = make([]RESTAction, 0)
+// Action --
+func (config *HTTPHandlerConfig) Action(param interface{}) *HTTPHandlerConfig {
+	if config.Actions == nil {
+		config.Actions = make([]string, 0)
 	}
-
-	if action, ok := param.(RESTAction); ok {
-		config.RESTActions = append(config.RESTActions, action)
+	if action, ok := param.(string); ok {
+		config.Actions = append(config.Actions, action)
 	}
-
-	if actions, ok := param.([]RESTAction); ok {
-		config.RESTActions = append(config.RESTActions, actions...)
+	if actions, ok := param.([]string); ok {
+		config.Actions = append(config.Actions, actions...)
 	}
-
 	return config
 }
 
@@ -54,14 +51,11 @@ func (config *HTTPHandlerConfig) Middleware(param interface{}) *HTTPHandlerConfi
 	if config.Middlewares == nil {
 		config.Middlewares = make([]Middleware, 0)
 	}
-
 	if middleware, ok := param.(Middleware); ok {
 		config.Middlewares = append(config.Middlewares, middleware)
 	}
-
 	if middlewares, ok := param.([]Middleware); ok {
 		config.Middlewares = append(config.Middlewares, middlewares...)
 	}
-
 	return config
 }

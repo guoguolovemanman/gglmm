@@ -10,32 +10,32 @@ import (
 type TestService struct{}
 
 func (service *TestService) CustomActions() ([]*HTTPAction, error) {
-	actions := []*HTTPAction{
-		&HTTPAction{"/test", func(w http.ResponseWriter, r *http.Request) {
-			NewSuccessResponse().
-				AddData("success", "success").
-				WriteJSON(w)
-		}, "GET"},
-	}
+	actions := []*HTTPAction{}
+	action := &HTTPAction{"/test", func(w http.ResponseWriter, r *http.Request) {
+		OkResponse().
+			AddData("success", "success").
+			JSON(w)
+	}, "GET"}
+	actions = append(actions, action)
 	return actions, nil
 }
 
-func (service *TestService) RESTAction(action RESTAction) (*HTTPAction, error) {
+func (service *TestService) Action(action string) (*HTTPAction, error) {
 	return nil, nil
 }
 
 func TestHTTP(t *testing.T) {
 
-	RegisterHTTPHandler(&TestService{}, "/api")
+	HandleHTTP(&TestService{}, "/api")
 
-	router := GenerateHttpRouter()
+	router := handleHTTP()
 
 	testResponse := httptest.NewRecorder()
 	testRequest, _ := http.NewRequest("GET", "/api/test", nil)
 
 	router.ServeHTTP(testResponse, testRequest)
 
-	response := NewResponse()
+	response := OkResponse()
 	if err := json.Unmarshal(testResponse.Body.Bytes(), response); err != nil {
 		t.Fail()
 	}

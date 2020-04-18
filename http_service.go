@@ -9,44 +9,41 @@ import (
 	"strings"
 )
 
-// RESTAction 操作
-type RESTAction uint8
-
 const (
-	// RESTActionGetByID 根据ID拉取单个
-	RESTActionGetByID RESTAction = iota
-	// RESTActionFirst 根据条件拉取单个
-	RESTActionFirst
-	// RESTActionList 列表
-	RESTActionList
-	// RESTActionPage 分页
-	RESTActionPage
-	// RESTActionStore 保存
-	RESTActionStore
-	// RESTActionUpdate 更新整体
-	RESTActionUpdate
-	// RESTActionUpdateFields 更新多个字段
-	RESTActionUpdateFields
-	// RESTActionDestory 软删除
-	RESTActionDestory
-	// RESTActionRestore 恢复
-	RESTActionRestore
+	// ActionGetByID 根据ID拉取单个
+	ActionGetByID = "GetByID"
+	// ActionFirst 根据条件拉取单个
+	ActionFirst = "First"
+	// ActionList 列表
+	ActionList = "List"
+	// ActionPage 分页
+	ActionPage = "page"
+	// ActionStore 保存
+	ActionStore = "Store"
+	// ActionUpdate 更新整体
+	ActionUpdate = "Update"
+	// ActionUpdateFields 更新多个字段
+	ActionUpdateFields = "UpdateFields"
+	// ActionDestory 软删除
+	ActionDestory = "Destory"
+	// ActionRestore 恢复
+	ActionRestore = "Resotre"
 )
 
 // IDRegexp ID正则表达式
 const IDRegexp = "{id:[0-9]+}"
 
 var (
-	// RESTRead 读操作
-	RESTRead = []RESTAction{RESTActionGetByID, RESTActionFirst, RESTActionList, RESTActionPage}
-	// RESTWrite 写操作
-	RESTWrite = []RESTAction{RESTActionStore, RESTActionUpdate, RESTActionUpdateFields}
-	// RESTDelete 删除操作
-	RESTDelete = []RESTAction{RESTActionDestory, RESTActionRestore}
-	// RESTAdmin 管理操作
-	RESTAdmin = []RESTAction{RESTActionList, RESTActionPage, RESTActionStore, RESTActionUpdate, RESTActionDestory, RESTActionRestore}
-	// RESTAll 全部操作
-	RESTAll = []RESTAction{RESTActionGetByID, RESTActionFirst, RESTActionList, RESTActionPage, RESTActionStore, RESTActionUpdate, RESTActionUpdateFields, RESTActionDestory, RESTActionRestore}
+	// ReadActions 读操作
+	ReadActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage}
+	// WriteActions 写操作
+	WriteActions = []string{ActionStore, ActionUpdate, ActionUpdateFields}
+	// DeleteActions 删除操作
+	DeleteActions = []string{ActionDestory, ActionRestore}
+	// AdminActions 管理操作
+	AdminActions = []string{ActionList, ActionPage, ActionStore, ActionUpdate, ActionDestory, ActionRestore}
+	// AllActions 全部操作
+	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionStore, ActionUpdate, ActionUpdateFields, ActionDestory, ActionRestore}
 	// ErrAction --
 	ErrAction = errors.New("不支持Action")
 )
@@ -100,44 +97,44 @@ func (service *HTTPService) CustomActions() ([]*HTTPAction, error) {
 	return nil, nil
 }
 
-// RESTAction --
-func (service *HTTPService) RESTAction(restAction RESTAction) (*HTTPAction, error) {
+// Action --
+func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 	var path string
 	var handlerFunc http.HandlerFunc
 	var method string
-	switch restAction {
-	case RESTActionGetByID:
+	switch action {
+	case ActionGetByID:
 		path = "/" + IDRegexp
 		handlerFunc = service.GetByID
 		method = "GET"
-	case RESTActionFirst:
+	case ActionFirst:
 		path = "/first"
 		handlerFunc = service.First
 		method = "POST"
-	case RESTActionList:
+	case ActionList:
 		path = "/list"
 		handlerFunc = service.List
 		method = "POST"
-	case RESTActionPage:
+	case ActionPage:
 		path = "/page"
 		handlerFunc = service.Page
 		method = "POST"
-	case RESTActionStore:
+	case ActionStore:
 		handlerFunc = service.Store
 		method = "POST"
-	case RESTActionUpdate:
+	case ActionUpdate:
 		path = "/" + IDRegexp
 		handlerFunc = service.Update
 		method = "PUT"
-	case RESTActionUpdateFields:
+	case ActionUpdateFields:
 		path = "/" + IDRegexp + "/fields"
 		handlerFunc = service.UpdateFields
 		method = "PUT"
-	case RESTActionDestory:
+	case ActionDestory:
 		path = "/" + IDRegexp
 		handlerFunc = service.Destory
 		method = "DELETE"
-	case RESTActionRestore:
+	case ActionRestore:
 		path = "/" + IDRegexp
 		handlerFunc = service.Restore
 		method = "POST"
@@ -152,30 +149,30 @@ func (service *HTTPService) RESTAction(restAction RESTAction) (*HTTPAction, erro
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 	idRequest, err := DecodeIDRequest(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
 			if len(idRequest.Preloads) > 0 {
 				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
 			}
 			if err := cacher.GetObj(cacheKey, model); err == nil {
-				NewSuccessResponse().
-					AddData(ReflectSingleKey(service.modelValue), model).
-					WriteJSON(w)
+				OkResponse().
+					AddData(SingleKey(service.modelValue), model).
+					JSON(w)
 				return
 			}
 		}
 	}
 	if err = gormRepository.Get(model, idRequest); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
 			if len(idRequest.Preloads) > 0 {
 				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
@@ -183,16 +180,16 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 			cacher.Set(cacheKey, model)
 		}
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // First 单个
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -200,19 +197,19 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Get(model, filterRequest); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // List 列表
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -220,19 +217,19 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	}
 	list := reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.List(list, filterRequest); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
-	NewSuccessResponse().
-		AddData(ReflectMultiKey(service.modelValue), list).
-		WriteJSON(w)
+	OkResponse().
+		AddData(MultiKey(service.modelValue), list).
+		JSON(w)
 }
 
 // Page 分页
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageRequest, err := DecodePageRequest(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -241,153 +238,153 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageResponse := PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.Page(&pageResponse, pageRequest); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
-	NewSuccessResponse().
-		AddData(ReflectMultiKey(service.modelValue), pageResponse.List).
+	OkResponse().
+		AddData(MultiKey(service.modelValue), pageResponse.List).
 		AddData("pagination", pageResponse.Pagination).
-		WriteJSON(w)
+		JSON(w)
 }
 
 // Store 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeStoreFunc != nil {
 		model, err = service.beforeStoreFunc(model)
 		if err != nil {
-			NewFailResponse(err.Error()).WriteJSON(w)
+			FailResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.Store(model); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // Update 更新整体
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxVarID(r)
+	id, err := PathVarID(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeUpdateFunc != nil {
 		model, id, err = service.beforeUpdateFunc(model, id)
 		if err != nil {
-			NewFailResponse(err.Error()).WriteJSON(w)
+			FailResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.Update(model, id); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.DelPattern(cacheKey)
 		}
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // UpdateFields 更新整体
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxVarID(r)
+	id, err := PathVarID(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err := gormRepository.Get(model, id); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	fields, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeUpdateFunc != nil {
 		fields, id, err = service.beforeUpdateFunc(fields, id)
 		if err != nil {
-			NewFailResponse(err.Error()).WriteJSON(w)
+			FailResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.UpdateFields(model, fields); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.DelPattern(cacheKey)
 		}
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // Destory 删除
 func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxVarID(r)
+	id, err := PathVarID(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Destroy(model, id); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.DelPattern(cacheKey)
 		}
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }
 
 // Restore 恢复
 func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
-	id, err := MuxVarID(r)
+	id, err := PathVarID(r)
 	if err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		RequestErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Restore(model, id); err != nil {
-		NewFailResponse(err.Error()).WriteJSON(w)
+		FailResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
-		if ReflectCache(service.modelValue) {
+		if SupportCache(service.modelValue) {
 			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
 			cacher.DelPattern(cacheKey)
 		}
 	}
-	NewSuccessResponse().
-		AddData(ReflectSingleKey(service.modelValue), model).
-		WriteJSON(w)
+	OkResponse().
+		AddData(SingleKey(service.modelValue), model).
+		JSON(w)
 }

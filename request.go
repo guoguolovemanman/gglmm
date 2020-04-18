@@ -4,28 +4,25 @@ import (
 	"errors"
 )
 
-// FilterOperate 过滤操作
-type FilterOperate string
-
 const (
 	// FilterOperateEqual 等于
-	FilterOperateEqual FilterOperate = "="
+	FilterOperateEqual = "="
 	// FilterOperateNotEqual 等于
-	FilterOperateNotEqual FilterOperate = "<>"
+	FilterOperateNotEqual = "<>"
 	// FilterOperateGreaterThan 大于
-	FilterOperateGreaterThan FilterOperate = ">"
+	FilterOperateGreaterThan = ">"
 	// FilterOperateGreaterEqual 大于等于
-	FilterOperateGreaterEqual FilterOperate = ">="
+	FilterOperateGreaterEqual = ">="
 	// FilterOperateLessThan 小于
-	FilterOperateLessThan FilterOperate = "<"
+	FilterOperateLessThan = "<"
 	// FilterOperateLessEqual 小于等于
-	FilterOperateLessEqual FilterOperate = "<="
+	FilterOperateLessEqual = "<="
 	// FilterOperateLike like模糊匹配
-	FilterOperateLike FilterOperate = "like"
+	FilterOperateLike = "like"
 	// FilterOperateIn in查询
-	FilterOperateIn FilterOperate = "in"
+	FilterOperateIn = "in"
 	// FilterOperateBetween between查询
-	FilterOperateBetween FilterOperate = "between"
+	FilterOperateBetween = "between"
 	// FilterSeparator 参数风隔符
 	FilterSeparator = "|"
 	// DefaultPageSize 默认每页大小
@@ -45,9 +42,9 @@ type IDRequest struct {
 
 // Filter 过滤参数
 type Filter struct {
-	Field   string        `json:"field"`
-	Operate FilterOperate `json:"operate"`
-	Value   interface{}   `json:"value"`
+	Field   string      `json:"field"`
+	Operate string      `json:"operate"`
+	Value   interface{} `json:"value"`
 }
 
 // FilterRequest 分页请求
@@ -58,7 +55,7 @@ type FilterRequest struct {
 }
 
 // AddFilter 添加过滤条件
-func (request *FilterRequest) AddFilter(field string, operate FilterOperate, value interface{}) {
+func (request *FilterRequest) AddFilter(field string, operate string, value interface{}) {
 	if request.Filters == nil {
 		request.Filters = make([]Filter, 0)
 	}

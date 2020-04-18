@@ -76,19 +76,19 @@ func main() {
 	defer redisCacher.Close()
 	gglmm.RegisterCacher(redisCacher)
 
-	gglmm.RegisterBasePath("/api/example")
+	gglmm.BasePath("/api/example")
 
 	testHTTPService := gglmm.NewHTTPService(Test{})
 	testHTTPService.HandleBeforeStoreFunc(beforeStore)
 	testHTTPService.HandleBeforeUpdateFunc(beforeUpdate)
-	gglmm.RegisterHTTPHandler(testHTTPService, "/test").
+	gglmm.HandleHTTP(testHTTPService, "/test").
 		Middleware(gglmm.Middleware{
 			Name: "example",
 			Func: middlewareFunc, // 登录态中间件请参考gglmm-account
 		}).
-		RESTAction(gglmm.RESTAll)
+		Action(gglmm.AllActions)
 
-	gglmm.RegisterRPCHandler(NewRPCTestService(), "RPCTestService")
+	gglmm.RegisterRPC(NewRPCTestService())
 
 	go testRPC()
 

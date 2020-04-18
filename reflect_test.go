@@ -22,7 +22,7 @@ func (test Model2) ResponseKey() [2]string {
 var model1 = Model1{}
 var model2 = Model2{}
 
-func TestReflectCache(t *testing.T) {
+func TestSupportCache(t *testing.T) {
 	tests := []struct {
 		model  interface{}
 		result bool
@@ -31,14 +31,14 @@ func TestReflectCache(t *testing.T) {
 		{model: model2, result: true},
 	}
 	for _, test := range tests {
-		result := ReflectCache(reflect.ValueOf(test.model))
+		result := SupportCache(reflect.ValueOf(test.model))
 		if result != test.result {
 			t.Fatalf("fail: %v <=> %v\n", result, test.result)
 		}
 	}
 }
 
-func TestReflectSingleKey(t *testing.T) {
+func TestSingleKey(t *testing.T) {
 	tests := []struct {
 		model  interface{}
 		result string
@@ -47,14 +47,14 @@ func TestReflectSingleKey(t *testing.T) {
 		{model: model2, result: "test"},
 	}
 	for _, test := range tests {
-		result := ReflectSingleKey(reflect.ValueOf(test.model))
+		result := SingleKey(reflect.ValueOf(test.model))
 		if result != test.result {
 			t.Fatalf("fail: %v <=> %v\n", result, test.result)
 		}
 	}
 }
 
-func TestReflectMultiKey(t *testing.T) {
+func TestMultiKey(t *testing.T) {
 	tests := []struct {
 		model  interface{}
 		result string
@@ -63,7 +63,7 @@ func TestReflectMultiKey(t *testing.T) {
 		{model: model2, result: "tests"},
 	}
 	for _, test := range tests {
-		result := ReflectMultiKey(reflect.ValueOf(test.model))
+		result := MultiKey(reflect.ValueOf(test.model))
 		if result != test.result {
 			t.Fatalf("fail: %v <=> %v\n", result, test.result)
 		}

@@ -58,7 +58,7 @@ func (repository *GormRepository) preloadDB(preloads []string) *gorm.DB {
 	return db
 }
 
-// Get --
+// Get 单个查询
 func (repository *GormRepository) Get(model interface{}, request interface{}) error {
 	if idRequest, ok := request.(IDRequest); ok {
 		return repository.getByID(model, idRequest)
@@ -88,7 +88,7 @@ func (repository *GormRepository) getByID(model interface{}, idRequest IDRequest
 // getByFilter 根据条件单个查询
 func (repository *GormRepository) getByFilter(model interface{}, filterRequest FilterRequest) error {
 	db := repository.preloadDB(filterRequest.Preloads)
-	db, err := gormSetupFilterRequest(db, filterRequest)
+	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (repository *GormRepository) getByFilter(model interface{}, filterRequest F
 // List 根据条件列表查询
 func (repository *GormRepository) List(slice interface{}, filterRequest FilterRequest) error {
 	db := repository.preloadDB(filterRequest.Preloads)
-	db, err := gormSetupFilterRequest(db, filterRequest)
+	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (repository *GormRepository) List(slice interface{}, filterRequest FilterRe
 // Page 根据条件分页查询
 func (repository *GormRepository) Page(pageResponse *PageResponse, pageRequest PageRequest) error {
 	db := repository.preloadDB(pageRequest.Preloads)
-	db, err := gormSetupFilterRequest(db, pageRequest.FilterRequest)
+	db, err := gormFilterRequest(db, pageRequest.FilterRequest)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (repository *GormRepository) Store(model interface{}) error {
 	return nil
 }
 
-// Update 更新
+// Update 更新整体
 func (repository *GormRepository) Update(model interface{}, id int64) error {
 	modelID := repository.ID(model)
 	if modelID != id {

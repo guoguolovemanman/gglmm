@@ -4,8 +4,8 @@ import (
 	"reflect"
 )
 
-// ReflectCache --
-func ReflectCache(v reflect.Value) bool {
+// SupportCache --
+func SupportCache(v reflect.Value) bool {
 	if cacheMethod := v.MethodByName("Cache"); cacheMethod.IsValid() {
 		results := cacheMethod.Call(nil)
 		if results != nil && len(results) == 1 {
@@ -15,8 +15,8 @@ func ReflectCache(v reflect.Value) bool {
 	return false
 }
 
-// ReflectSingleKey --
-func ReflectSingleKey(v reflect.Value) string {
+// SingleKey --
+func SingleKey(v reflect.Value) string {
 	if keyMethod := v.MethodByName("ResponseKey"); keyMethod.IsValid() {
 		results := keyMethod.Call(nil)
 		if results != nil && len(results) == 1 {
@@ -26,8 +26,8 @@ func ReflectSingleKey(v reflect.Value) string {
 	return "record"
 }
 
-// ReflectMultiKey --
-func ReflectMultiKey(v reflect.Value) string {
+// MultiKey --
+func MultiKey(v reflect.Value) string {
 	if keyMethod := v.MethodByName("ResponseKey"); keyMethod.IsValid() {
 		results := keyMethod.Call(nil)
 		if results != nil && len(results) == 1 {

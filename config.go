@@ -2,8 +2,8 @@ package gglmm
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
-	"log"
 	"strings"
 )
 
@@ -17,7 +17,6 @@ func (config ConfigAPI) Check() bool {
 	if config.Address == "" || !strings.Contains(config.Address, ":") {
 		return false
 	}
-	log.Println("config api check valid")
 	return true
 }
 
@@ -32,7 +31,7 @@ func (config ConfigRPC) Check() bool {
 	if config.Network == "" {
 		return false
 	}
-	if config.Address == "" {
+	if config.Address == "" || !strings.Contains(config.Address, ":") {
 		return false
 	}
 	return true
@@ -67,7 +66,27 @@ func (config ConfigDB) Check() bool {
 	if config.MaxOpen <= 0 || config.MaxIdel <= 0 || config.ConnMaxLifetime <= 0 {
 		return false
 	}
-	log.Println("config db check valid")
+	return true
+}
+
+// ConfigJWT --
+type ConfigJWT struct {
+	Expires int64
+	Secret  string
+}
+
+// Check --
+func (config *ConfigJWT) Check(cmd string) bool {
+	if cmd == "all" || cmd == "write" {
+		if config.Expires <= 0 {
+			return false
+		}
+	}
+	if cmd == "all" || cmd == "read" {
+		if config.Secret == "" {
+			return false
+		}
+	}
 	return true
 }
 
@@ -77,14 +96,17 @@ type ConfigChecker interface {
 }
 
 // ParseConfigFile --
-func ParseConfigFile(file string, config ConfigChecker) bool {
+func ParseConfigFile(file string, config ConfigChecker) error {
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = json.Unmarshal(bytes, config)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	return config.Check()
+	if !config.Check() {
+		return errors.New("config check fail")
+	}
+	return nil
 }

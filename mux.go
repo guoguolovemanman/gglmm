@@ -8,13 +8,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// MuxVars --
-func MuxVars(r *http.Request) map[string]string {
+// PathVars --
+func PathVars(r *http.Request) map[string]string {
 	return mux.Vars(r)
 }
 
-// MuxVar --
-func MuxVar(r *http.Request, key string) (string, error) {
+// PathVar --
+func PathVar(r *http.Request, key string) (string, error) {
 	vars := mux.Vars(r)
 	value, ok := vars[key]
 	if !ok {
@@ -23,19 +23,9 @@ func MuxVar(r *http.Request, key string) (string, error) {
 	return value, nil
 }
 
-// MuxVarDefault --
-func MuxVarDefault(r *http.Request, key string, defaultValue string) string {
-	vars := mux.Vars(r)
-	value, ok := vars[key]
-	if !ok {
-		return defaultValue
-	}
-	return value
-}
-
-// MuxVarID Mux 解释ID
-func MuxVarID(r *http.Request) (int64, error) {
-	value, err := MuxVar(r, "id")
+// PathVarID Mux 解释ID
+func PathVarID(r *http.Request) (int64, error) {
+	value, err := PathVar(r, "id")
 	if err != nil {
 		return 0, err
 	}

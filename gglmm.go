@@ -5,52 +5,64 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"reflect"
 	"strings"
 
 	"github.com/gorilla/mux"
 )
 
-var basePath string
-var httpHandlerConfigs []*HTTPHandlerConfig
-var rpcHandlerConfigs []*RPCHandlerConfig
+var basePath string = ""
+var httpHandlerConfigs []*HTTPHandlerConfig = nil
+var rpcHandlerConfigs []*RPCHandlerConfig = nil
 
-// RegisterBasePath 注册基础路径
-func RegisterBasePath(path string) {
+// BasePath 注册基础路径
+func BasePath(path string) {
 	basePath = path
 }
 
-// RegisterHTTPHandler 注册HTTP请求处理者
+// HandleHTTP 注册HTTP请求处理者
 // httpHandler 处理者
 // path 路径
-func RegisterHTTPHandler(httpHandler HTTPHandler, path string) *HTTPHandlerConfig {
+func HandleHTTP(httpHandler HTTPHandler, params ...interface{}) *HTTPHandlerConfig {
 	if httpHandlerConfigs == nil {
 		httpHandlerConfigs = make([]*HTTPHandlerConfig, 0)
 	}
 	config := &HTTPHandlerConfig{
 		HTTPHandler: httpHandler,
-		Path:        path,
+	}
+	if params != nil {
+		if len(params) > 0 {
+			if path, ok := params[0].(string); ok {
+				config.Path = path
+			}
+		}
 	}
 	httpHandlerConfigs = append(httpHandlerConfigs, config)
 	return config
 }
 
-// RegisterRPCHandler 注册RPC请求处理者
+// RegisterRPC 注册RPC请求处理者
 // rpcHandler 处理者
 // name 名称
-func RegisterRPCHandler(rpcHandler RPCHandler, name string) *RPCHandlerConfig {
+func RegisterRPC(rpcHandler RPCHandler, params ...interface{}) *RPCHandlerConfig {
 	if rpcHandlerConfigs == nil {
 		rpcHandlerConfigs = make([]*RPCHandlerConfig, 0)
 	}
 	config := &RPCHandlerConfig{
 		RPCHandler: rpcHandler,
-		Name:       name,
+	}
+	if params != nil {
+		if len(params) > 0 {
+			if name, ok := params[0].(string); ok {
+				config.Name = name
+			}
+		}
 	}
 	rpcHandlerConfigs = append(rpcHandlerConfigs, config)
 	return config
 }
 
-// GenerateHttpRouter --
-func GenerateHttpRouter() *mux.Router {
+func handleHTTP() *mux.Router {
 	if httpHandlerConfigs == nil || len(httpHandlerConfigs) == 0 {
 		return nil
 	}
@@ -58,7 +70,6 @@ func GenerateHttpRouter() *mux.Router {
 	router := mux.NewRouter()
 	for _, config := range httpHandlerConfigs {
 		subrouter := router.PathPrefix(basePath).Subrouter()
-
 		var middlewares string
 		for _, middleware := range config.Middlewares {
 			subrouter.Use(mux.MiddlewareFunc(middleware.Func))
@@ -68,73 +79,80 @@ func GenerateHttpRouter() *mux.Router {
 				middlewares += "|" + middleware.Name
 			}
 		}
-
 		fmt.Println()
-
 		httpActions, err := config.HTTPHandler.CustomActions()
 		if err != nil {
 			log.Println(err)
 		} else {
 			if httpActions != nil {
 				for _, httpAction := range httpActions {
-					setupAction(subrouter, middlewares, config, httpAction)
+					handleHTTPAction(subrouter, middlewares, config, httpAction)
 				}
 			}
 		}
-
-		for _, restAction := range config.RESTActions {
-			httpAction, err := config.HTTPHandler.RESTAction(restAction)
+		for _, action := range config.Actions {
+			httpAction, err := config.HTTPHandler.Action(action)
 			if err != nil {
 				log.Println(err)
 			} else if httpAction.HandlerFunc != nil {
-				setupAction(subrouter, middlewares, config, httpAction)
+				handleHTTPAction(subrouter, middlewares, config, httpAction)
 			}
 		}
 	}
 	return router
 }
 
-func setupAction(subrouter *mux.Router, middlewares string, config *HTTPHandlerConfig, httpAction *HTTPAction) {
+func handleHTTPAction(subrouter *mux.Router, middlewares string, config *HTTPHandlerConfig, httpAction *HTTPAction) {
 	if httpAction.HandlerFunc == nil {
 		return
 	}
 	path := config.Path + httpAction.Path
 	subrouter.HandleFunc(path, httpAction.HandlerFunc).Methods(httpAction.Method)
 	if middlewares != "" {
-		log.Printf("%-8s %-60s %-60s\n", httpAction.Method, basePath+path, middlewares)
+		log.Printf("%-8s %-60s %-40s\n", httpAction.Method, basePath+path, middlewares)
 	} else {
 		log.Printf("%-8s %-60s\n", httpAction.Method, basePath+path)
 	}
 }
 
-// ListenAndServe 监听并服务
-func ListenAndServe(address string) {
-	fmt.Println()
-	log.Println("listen on: " + address)
-
-	if httpHandlerConfigs != nil && len(httpHandlerConfigs) >= 0 {
-		router := GenerateHttpRouter()
-		http.Handle("/", router)
-	}
-
-	if rpcHandlerConfigs != nil && len(rpcHandlerConfigs) >= 0 {
-
-		for _, config := range rpcHandlerConfigs {
+func registerRPC() {
+	for _, config := range rpcHandlerConfigs {
+		if config.Name == "" {
+			rpc.Register(config.RPCHandler)
+		} else {
 			rpc.RegisterName(config.Name, config.RPCHandler)
-
-			rpcActionInfos := []RPCActionInfo{}
-			config.RPCHandler.Actions("all", &rpcActionInfos)
-
-			fmt.Println()
-			rpcInfos := []string{}
-			for _, info := range rpcActionInfos {
-				rpcInfos = append(rpcInfos, info.String())
+		}
+		rpcActionInfos := []RPCActionInfo{}
+		config.RPCHandler.Actions("all", &rpcActionInfos)
+		fmt.Println()
+		rpcInfos := []string{}
+		for _, info := range rpcActionInfos {
+			rpcInfos = append(rpcInfos, info.String())
+		}
+		if config.Name == "" {
+			handlerType := reflect.TypeOf(config.RPCHandler)
+			if handlerType.Kind() == reflect.Ptr {
+				handlerType = handlerType.Elem()
 			}
+			name := handlerType.Name()
+			log.Printf("%s: %s\n", name, strings.Join(rpcInfos, "; "))
+		} else {
 			log.Printf("%s: %s\n", config.Name, strings.Join(rpcInfos, "; "))
 		}
+	}
+}
+
+// ListenAndServe 监听并服务
+func ListenAndServe(address string) {
+	log.Println("listen on: " + address)
+	if httpHandlerConfigs != nil && len(httpHandlerConfigs) >= 0 {
+		router := handleHTTP()
+		http.Handle("/", router)
+	}
+	if rpcHandlerConfigs != nil && len(rpcHandlerConfigs) >= 0 {
+		registerRPC()
 		rpc.HandleHTTP()
 	}
-
 	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		panic(err)
@@ -144,7 +162,6 @@ func ListenAndServe(address string) {
 // ListenAndServeConfig 监听并服务
 func ListenAndServeConfig(config ConfigAPI) {
 	if !config.Check() {
-		log.Printf("%+v\n", config)
 		log.Fatal("ConfigAPI invalid")
 	}
 	ListenAndServe(config.Address)
