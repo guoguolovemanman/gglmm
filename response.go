@@ -9,7 +9,7 @@ const (
 	// ResposneCodeFail --
 	ResposneCodeFail = 1000
 	// ResponseCodeRequestError --
-	ResponseCodeRequestError = -1
+	ResponseCodeRequestError = 1001
 )
 
 // Response 响应
@@ -74,6 +74,9 @@ func (response *Response) AddData(key string, value interface{}) *Response {
 // JSON 输出JSON
 func (response *Response) JSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if response.Code < ResposneCodeFail {
+		w.WriteHeader(response.Code)
+	}
 	json.NewEncoder(w).Encode(response)
 }
 
