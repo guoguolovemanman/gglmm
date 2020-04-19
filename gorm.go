@@ -51,6 +51,8 @@ func NewGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLife
 var (
 	// ErrGormRecordNotFound --
 	ErrGormRecordNotFound = gorm.ErrRecordNotFound
+	// ErrFilter --
+	ErrFilter = errors.New("过滤参数错误")
 	// ErrFilterValueType --
 	ErrFilterValueType = errors.New("过滤值类型错误")
 	// ErrFilterValueSize --
@@ -82,6 +84,9 @@ func gormFilters(db *gorm.DB, filters []Filter) (*gorm.DB, error) {
 }
 
 func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
+	if !filter.Check() {
+		return nil, ErrFilter
+	}
 	switch filter.Operate {
 	case FilterOperateEqual:
 		return db.Where(filter.Field+" = ?", filter.Value), nil
@@ -106,11 +111,10 @@ func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 }
 
 func gormFilterIn(db *gorm.DB, filter Filter) (*gorm.DB, error) {
-	stringValue, ok := filter.Value.(string)
+	values, ok := filter.Value.([]interface{})
 	if !ok {
 		return nil, ErrFilterValueType
 	}
-	values := strings.Split(stringValue, FilterSeparator)
 	return db.Where(filter.Field+" in (?)", values), nil
 }
 

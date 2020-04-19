@@ -47,6 +47,20 @@ type Filter struct {
 	Value   interface{} `json:"value"`
 }
 
+// Check --
+func (filter Filter) Check() bool {
+	if filter.Field == "" {
+		return false
+	}
+	if filter.Operate == "" {
+		return false
+	}
+	if filter.Value == nil {
+		return false
+	}
+	return true
+}
+
 // FilterRequest 分页请求
 type FilterRequest struct {
 	Filters  []Filter `json:"filters"`
