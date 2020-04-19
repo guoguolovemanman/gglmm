@@ -137,11 +137,11 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 		handlerFunc = service.Destory
 		method = "DELETE"
 	case ActionRestore:
-		path = "/" + IDRegexp
+		path = "/" + IDRegexp + "/restore"
 		handlerFunc = service.Restore
-		method = "POST"
+		method = "DELETE"
 	case ActionRemove:
-		path = "/" + IDRegexp + "/hard"
+		path = "/" + IDRegexp + "/remove"
 		handlerFunc = service.Remove
 		method = "DELETE"
 	}
