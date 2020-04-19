@@ -76,7 +76,7 @@ func handleHTTP() *mux.Router {
 			if middlewares == "" {
 				middlewares = middleware.Name
 			} else {
-				middlewares += "|" + middleware.Name
+				middlewares += " | " + middleware.Name
 			}
 		}
 		fmt.Println()
@@ -109,7 +109,7 @@ func handleHTTPAction(subrouter *mux.Router, middlewares string, config *HTTPHan
 	path := config.Path + httpAction.Path
 	subrouter.HandleFunc(path, httpAction.HandlerFunc).Methods(httpAction.Method)
 	if middlewares != "" {
-		log.Printf("%-8s %-60s %-40s\n", httpAction.Method, basePath+path, middlewares)
+		log.Printf("%-8s %-60s %-80s\n", httpAction.Method, basePath+path, middlewares)
 	} else {
 		log.Printf("%-8s %-60s\n", httpAction.Method, basePath+path)
 	}

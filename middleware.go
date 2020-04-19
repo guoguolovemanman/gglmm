@@ -13,21 +13,40 @@ type Middleware struct {
 	Func mux.MiddlewareFunc
 }
 
-// JWTAuthMiddleware JWT通用认证中间件
-func JWTAuthMiddleware(secrets []string) Middleware {
+// JWTAuthentication JWT通用认证中间件
+func JWTAuthentication(secrets ...string) Middleware {
 	return Middleware{
-		Name: fmt.Sprintf("%s%+v", "JWTAuth", secrets),
+		Name: fmt.Sprintf("%s%+v", "JWTAuthentication", secrets),
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				for _, secret := range secrets {
-					authInfo, _, err := ParseAuthToken(GetAuthToken(r), secret)
+					authorization, _, err := ParseAuthorizationToken(GetAuthorizationToken(r), secret)
 					if err == nil {
-						r = RequestWithAuthInfo(r, authInfo)
+						r = RequestWithAuthorization(r, authorization)
 						next.ServeHTTP(w, r)
 						return
 					}
 				}
 				UnauthorizedResponse().JSON(w)
+			})
+		},
+	}
+}
+
+// CheckPermissionFunc --
+type CheckPermissionFunc func(r *http.Request) error
+
+// PermissionChecker --
+func PermissionChecker(checkPermission CheckPermissionFunc) Middleware {
+	return Middleware{
+		Name: "PermissionChecker",
+		Func: func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if err := checkPermission(r); err != nil {
+					ForbiddenResponse().JSON(w)
+					return
+				}
+				next.ServeHTTP(w, r)
 			})
 		},
 	}

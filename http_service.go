@@ -28,6 +28,8 @@ const (
 	ActionDestory = "Destory"
 	// ActionRestore 恢复
 	ActionRestore = "Resotre"
+	// ActionRemove 直接删除
+	ActionRemove = "Remove"
 )
 
 // IDRegexp ID正则表达式
@@ -138,6 +140,10 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 		path = "/" + IDRegexp
 		handlerFunc = service.Restore
 		method = "POST"
+	case ActionRemove:
+		path = "/" + IDRegexp + "/hard"
+		handlerFunc = service.Remove
+		method = "DELETE"
 	}
 	if handlerFunc != nil {
 		return NewHTTPAction(path, handlerFunc, method), nil
@@ -343,7 +349,7 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 		JSON(w)
 }
 
-// Destory 删除
+// Destory 软删除
 func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
@@ -387,4 +393,25 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
+}
+
+// Remove 直接删除
+func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
+	id, err := PathVarID(r)
+	if err != nil {
+		RequestErrorResponse(err.Error()).JSON(w)
+		return
+	}
+	model := reflect.New(service.modelType).Interface()
+	if err = gormRepository.Remove(model, id); err != nil {
+		FailResponse(err.Error()).JSON(w)
+		return
+	}
+	if cacher != nil {
+		if SupportCache(service.modelValue) {
+			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
+			cacher.DelPattern(cacheKey)
+		}
+	}
+	OkResponse().JSON(w)
 }

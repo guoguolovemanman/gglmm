@@ -33,29 +33,19 @@ type HTTPHandlerConfig struct {
 }
 
 // Action --
-func (config *HTTPHandlerConfig) Action(param interface{}) *HTTPHandlerConfig {
+func (config *HTTPHandlerConfig) Action(actions ...string) *HTTPHandlerConfig {
 	if config.Actions == nil {
 		config.Actions = make([]string, 0)
 	}
-	if action, ok := param.(string); ok {
-		config.Actions = append(config.Actions, action)
-	}
-	if actions, ok := param.([]string); ok {
-		config.Actions = append(config.Actions, actions...)
-	}
+	config.Actions = append(config.Actions, actions...)
 	return config
 }
 
 // Middleware --
-func (config *HTTPHandlerConfig) Middleware(param interface{}) *HTTPHandlerConfig {
+func (config *HTTPHandlerConfig) Middleware(middlewares ...Middleware) *HTTPHandlerConfig {
 	if config.Middlewares == nil {
 		config.Middlewares = make([]Middleware, 0)
 	}
-	if middleware, ok := param.(Middleware); ok {
-		config.Middlewares = append(config.Middlewares, middleware)
-	}
-	if middlewares, ok := param.([]Middleware); ok {
-		config.Middlewares = append(config.Middlewares, middlewares...)
-	}
+	config.Middlewares = append(config.Middlewares, middlewares...)
 	return config
 }

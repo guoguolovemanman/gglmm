@@ -98,8 +98,12 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/tencentyun/cos-go-sdk-v5 v0.0.0-20200120023323-87ff3bc489ac h1:PSBhZblOjdwH7SIVgcue+7OlnLHkM45KuScLZ+PiVbQ=
 github.com/tencentyun/cos-go-sdk-v5 v0.0.0-20200120023323-87ff3bc489ac/go.mod h1:wQBO5HdAkLjj2q6XQiIfDSP8DXDNrppDRw2Kp/1BODA=
+github.com/tencentyun/cos-go-sdk-v5 v0.7.4 h1:Hsand7ideMevJKmogyFRTOGy0DxM+oSXHwePgZPI8s4=
+github.com/tencentyun/cos-go-sdk-v5 v0.7.4/go.mod h1:wQBO5HdAkLjj2q6XQiIfDSP8DXDNrppDRw2Kp/1BODA=
 github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200114083554-ddec1bbea416 h1:Snky0Eg1VQ9DxRU2JAu7rxwwuw0jvkBmYFud0NIyXKs=
 github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200114083554-ddec1bbea416/go.mod h1:b18KQa4IxHbxeseW1GcZox53d7J0z39VNONTxvvlkXw=
+github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200224031959-e05dcbd8be5a h1:v9VGGopw6GGrVazKBsikcpHSNa8oytXEfk0njgw1FtQ=
+github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200224031959-e05dcbd8be5a/go.mod h1:b18KQa4IxHbxeseW1GcZox53d7J0z39VNONTxvvlkXw=
 github.com/weihongguo/gglmm v0.0.0-20200225064623-73efc6160d28/go.mod h1:0HRQzLRQOXFBTfbBAg+1vWVXyeM+Q5KmdmXaiKD2+SE=
 github.com/weihongguo/gglmm-account v0.0.0-20200317144519-84e6a1300420 h1:x0ky/hKAvhQNqWvuXP6eeb7RVd7b4JXsV2WePx3Dz7M=
 github.com/weihongguo/gglmm-account v0.0.0-20200317144519-84e6a1300420/go.mod h1:6CLilHivoZxv+9O8gX1V+BSqpnTnTVNEk5GY8NH5IJY=
