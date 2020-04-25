@@ -2,7 +2,9 @@ package gglmm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -20,14 +22,19 @@ func PanicResponse() Middleware {
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
+					var response *Response
 					if recover := recover(); recover != nil {
 						switch panic := recover.(type) {
 						case string:
-							InternalErrorResponse(panic).JSON(w)
+							response = ErrorResponse(panic)
 						case error:
-							InternalErrorResponse(panic.Error()).JSON(w)
+							response = ErrorResponse(panic.Error())
 						}
 					}
+					response.
+						AddData("method", r.Method).
+						AddData("url", r.RequestURI).
+						JSON(w)
 				}()
 				next.ServeHTTP(w, r)
 			})
@@ -69,6 +76,21 @@ func CheckPermission(checkPermission CheckPermissionFunc) Middleware {
 					return
 				}
 				next.ServeHTTP(w, r)
+			})
+		},
+	}
+}
+
+// TimeLogger --
+func TimeLogger() Middleware {
+	return Middleware{
+		Name: "TimeLogger",
+		Func: func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				start := time.Now().UnixNano()
+				next.ServeHTTP(w, r)
+				end := time.Now().UnixNano()
+				log.Printf("[%-16d] %s", (end - start), r.RequestURI)
 			})
 		},
 	}

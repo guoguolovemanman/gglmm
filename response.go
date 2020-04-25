@@ -47,8 +47,8 @@ func OkResponse() *Response {
 	return ResponseOf(http.StatusOK, "")
 }
 
-// InternalErrorResponse --
-func InternalErrorResponse(message string) *Response {
+// ErrorResponse --
+func ErrorResponse(message string) *Response {
 	return ResponseOf(http.StatusInternalServerError, message)
 }
 

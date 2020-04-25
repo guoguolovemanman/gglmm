@@ -12,6 +12,10 @@ import (
 )
 
 var basePath string = ""
+var usePanicResponse = true
+var panicResponseMiddleware = PanicResponse()
+var useTimeLogger = false
+var timeLoggerMiddleware = TimeLogger()
 var httpHandlerConfigs []*HTTPHandlerConfig = nil
 var httpActionConfigs []*HTTPActionConfig = nil
 var rpcHandlerConfigs []*RPCHandlerConfig = nil
@@ -19,6 +23,16 @@ var rpcHandlerConfigs []*RPCHandlerConfig = nil
 // BasePath 基础路径
 func BasePath(path string) {
 	basePath = path
+}
+
+// UsePanicResponse --
+func UsePanicResponse(use bool) {
+	usePanicResponse = use
+}
+
+// UseTimeLogger --
+func UseTimeLogger(use bool) {
+	useTimeLogger = use
 }
 
 // HandleHTTP 注册HTTPHandler
@@ -86,9 +100,17 @@ func handleHTTP(router *mux.Router) {
 		subrouter := router.PathPrefix(basePath).Subrouter()
 		for _, middlewareAcion := range config.middlewareActions {
 			middlewares := make([]string, 0)
+			if usePanicResponse {
+				subrouter.Use(mux.MiddlewareFunc(panicResponseMiddleware.Func))
+				middlewares = append(middlewares, panicResponseMiddleware.Name)
+			}
 			for _, middleware := range middlewareAcion.middlewares {
 				subrouter.Use(mux.MiddlewareFunc(middleware.Func))
 				middlewares = append(middlewares, middleware.Name)
+			}
+			if useTimeLogger {
+				subrouter.Use(mux.MiddlewareFunc(timeLoggerMiddleware.Func))
+				middlewares = append(middlewares, timeLoggerMiddleware.Name)
 			}
 			for _, action := range middlewareAcion.actions {
 				httpAction, err := config.httpHandler.Action(action)
@@ -115,9 +137,17 @@ func handleHTTPAction(router *mux.Router) {
 	for _, config := range httpActionConfigs {
 		subrouter := router.PathPrefix(basePath).Subrouter()
 		middlewares := make([]string, 0)
+		if usePanicResponse {
+			subrouter.Use(mux.MiddlewareFunc(panicResponseMiddleware.Func))
+			middlewares = append(middlewares, panicResponseMiddleware.Name)
+		}
 		for _, middleware := range config.middlewares {
 			subrouter.Use(mux.MiddlewareFunc(middleware.Func))
 			middlewares = append(middlewares, middleware.Name)
+		}
+		if useTimeLogger {
+			subrouter.Use(mux.MiddlewareFunc(timeLoggerMiddleware.Func))
+			middlewares = append(middlewares, timeLoggerMiddleware.Name)
 		}
 		handleHTTPFunc(subrouter, config.httpAction.path, config.httpAction.handlerFunc, config.httpAction.methods...)
 		if len(middlewares) > 0 {
