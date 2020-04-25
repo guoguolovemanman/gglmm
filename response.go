@@ -47,16 +47,6 @@ func OkResponse() *Response {
 	return ResponseOf(http.StatusOK, "")
 }
 
-// FailResponse --
-func FailResponse(message string) *Response {
-	return ResponseOf(ResposneCodeFail, message)
-}
-
-// RequestErrorResponse --
-func RequestErrorResponse(message string) *Response {
-	return ResponseOf(ResponseCodeRequestError, message)
-}
-
 // InternalErrorResponse --
 func InternalErrorResponse(message string) *Response {
 	return ResponseOf(http.StatusInternalServerError, message)

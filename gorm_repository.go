@@ -168,8 +168,8 @@ func (repository *GormRepository) UpdateFields(model interface{}, fields interfa
 	return nil
 }
 
-// Destroy 软删除
-func (repository *GormRepository) Destroy(model interface{}, id int64) error {
+// Remove 软删除
+func (repository *GormRepository) Remove(model interface{}, id int64) error {
 	if err := repository.Delete(model, "id = ?", id).Error; err != nil {
 		return err
 	}
@@ -190,8 +190,8 @@ func (repository *GormRepository) Restore(model interface{}, id int64) error {
 	return nil
 }
 
-// Remove 直接删除
-func (repository *GormRepository) Remove(model interface{}, id int64) error {
+// Destroy 直接删除
+func (repository *GormRepository) Destroy(model interface{}, id int64) error {
 	return repository.Unscoped().Delete(model, "id = ?", id).Error
 }
 

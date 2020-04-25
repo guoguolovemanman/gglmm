@@ -5,45 +5,38 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
-type TestService struct{}
-
-func (service *TestService) CustomActions() ([]*HTTPAction, error) {
-	actions := []*HTTPAction{}
-	action := &HTTPAction{"/test", func(w http.ResponseWriter, r *http.Request) {
-		OkResponse().
-			AddData("success", "success").
-			JSON(w)
-	}, "GET"}
-	actions = append(actions, action)
-	return actions, nil
+func CustomAction(w http.ResponseWriter, r *http.Request) {
+	OkResponse().
+		AddData("success", "success").
+		JSON(w)
 }
 
-func (service *TestService) Action(action string) (*HTTPAction, error) {
-	return nil, nil
-}
+func TestGGLMM(t *testing.T) {
 
-func TestHTTP(t *testing.T) {
+	HandleHTTPAction("/api/custom", CustomAction, "GET")
 
-	HandleHTTP(&TestService{}, "/api")
-
-	router := handleHTTP()
+	router := mux.NewRouter()
+	handleHTTP(router)
+	handleHTTPAction(router)
 
 	testResponse := httptest.NewRecorder()
-	testRequest, _ := http.NewRequest("GET", "/api/test", nil)
+	testRequest, _ := http.NewRequest("GET", "/api/custom", nil)
 
 	router.ServeHTTP(testResponse, testRequest)
 
 	response := OkResponse()
 	if err := json.Unmarshal(testResponse.Body.Bytes(), response); err != nil {
-		t.Fail()
+		t.Fatal(err)
 	}
 	if response.Code != http.StatusOK {
-		t.Fail()
+		t.Fatal(response.Code)
 	}
 	success := response.Data["success"].(string)
 	if success != "success" {
-		t.Fail()
+		t.Fatal(success)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -84,29 +85,54 @@ func GetAuthorization(r *http.Request) (*Authorization, error) {
 
 // GetAuthorizationType 从请求取 Authorization Type
 func GetAuthorizationType(r *http.Request) (string, error) {
-	value := r.Context().Value(AuthorizationRequestKey)
-	if value == nil {
-		return "", errors.New("jwtsubject error")
-	}
-	authorization, ok := value.(*Authorization)
-	if !ok {
-		return "", errors.New("jwtsubject type error")
+	authorization, err := GetAuthorization(r)
+	if err != nil {
+		return "", err
 	}
 	return authorization.Type, nil
 }
 
 // GetAuthorizationID 从请求取 Authorization ID
 func GetAuthorizationID(r *http.Request, checkType string) (int64, error) {
-	value := r.Context().Value(AuthorizationRequestKey)
-	if value == nil {
-		return 0, errors.New("jwtsubject error")
-	}
-	authorization, ok := value.(*Authorization)
-	if !ok {
-		return 0, errors.New("jwtsubject type error")
+	authorization, err := GetAuthorization(r)
+	if err != nil {
+		return 0, err
 	}
 	if authorization.Type != checkType {
 		return 0, errors.New("jwtsubject type check fail")
 	}
 	return authorization.ID, nil
+}
+
+const (
+	// JWTExpires JWT失效时间
+	JWTExpires int64 = 24 * 60 * 60
+)
+
+func jwtGenerateClaims(subject interface{}, expires int64) (*jwt.StandardClaims, error) {
+	subjectBytes, err := json.Marshal(subject)
+	if err != nil {
+		return nil, err
+	}
+	jwtClaims := &jwt.StandardClaims{}
+	now := time.Now().Unix()
+	jwtClaims.IssuedAt = now
+	jwtClaims.NotBefore = now
+	jwtClaims.ExpiresAt = now + expires
+	jwtClaims.Subject = string(subjectBytes)
+	return jwtClaims, nil
+}
+
+func jwtParseClaims(tokenString string, secret string) (*jwt.StandardClaims, error) {
+	jwtClaims := &jwt.StandardClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, jwtClaims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !token.Valid {
+		return nil, errors.New("cannot convert claim to jwt.StandardClaims")
+	}
+	return jwtClaims, nil
 }

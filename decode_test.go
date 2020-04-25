@@ -14,12 +14,10 @@ func TestDecodeIDRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	resultRequest, err := DecodeIDRequest(request)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	if resultRequest.ID != 1 {
 		t.Fatal(resultRequest)
 	}
@@ -34,7 +32,7 @@ func TestDecodeIDRequest(t *testing.T) {
 func TestDecodeFilterRequest(t *testing.T) {
 	filterRequest := FilterRequest{
 		Filters: []Filter{
-			Filter{Field: "A", Operate: FilterOperateEqual, Value: "B"},
+			{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 		},
 		Order: "id",
 	}
@@ -44,12 +42,10 @@ func TestDecodeFilterRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	resultRequest, err := DecodeFilterRequest(request)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	if resultRequest.Order != "id" {
 		t.Fatal(resultRequest)
 	}
@@ -63,7 +59,7 @@ func TestDecodePageRequest(t *testing.T) {
 	pageRequest := PageRequest{
 		FilterRequest: FilterRequest{
 			Filters: []Filter{
-				Filter{Field: "A", Operate: FilterOperateEqual, Value: "B"},
+				{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 			},
 			Order: "id",
 		},
@@ -79,12 +75,10 @@ func TestDecodePageRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	resultRequest, err := DecodePageRequest(request)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	filterRequest := resultRequest.FilterRequest
 	if filterRequest.Order != "id" {
 		t.Fatal(resultRequest)
@@ -93,7 +87,6 @@ func TestDecodePageRequest(t *testing.T) {
 	if filter.Field != "A" || filter.Operate != FilterOperateEqual || filter.Value != "B" {
 		t.Fatal(resultRequest)
 	}
-
 	pagination := resultRequest.Pagination
 	if pagination.PageSize != 0 || pagination.PageIndex != 1 || pagination.Total != 2 {
 		t.Fatal(resultRequest)
@@ -106,22 +99,17 @@ type TestModel struct {
 }
 
 func TestDecodeModel(t *testing.T) {
-	test := TestModel{
-		Key:   "key",
-		Value: "value",
-	}
+	test := TestModel{Key: "key", Value: "value"}
 	query, _ := json.Marshal(test)
 	body := bytes.NewReader(query)
 	request, err := http.NewRequest("GET", "", body)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	result, err := DecodeModel(request, reflect.TypeOf(test))
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	check := result.(TestModel)
 	if check.Key != test.Key || check.Value != test.Value {
 		t.Fatal(check)
@@ -130,10 +118,7 @@ func TestDecodeModel(t *testing.T) {
 
 func TestDecodeModelSlice(t *testing.T) {
 	tests := []TestModel{
-		TestModel{
-			Key:   "key",
-			Value: "value",
-		},
+		{Key: "key", Value: "value"},
 	}
 	query, _ := json.Marshal(tests)
 	body := bytes.NewReader(query)
@@ -141,12 +126,10 @@ func TestDecodeModelSlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	result, err := DecodeModelSlice(request, reflect.TypeOf(TestModel{}))
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	checks := result.([]TestModel)
 	if checks[0].Key != tests[0].Key || checks[0].Value != tests[0].Value {
 		t.Fatal(checks)

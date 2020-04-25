@@ -24,12 +24,12 @@ const (
 	ActionUpdate = "Update"
 	// ActionUpdateFields 更新多个字段
 	ActionUpdateFields = "UpdateFields"
-	// ActionDestory 软删除
-	ActionDestory = "Destory"
+	// ActionRemove 软删除
+	ActionRemove = "Remove"
 	// ActionRestore 恢复
 	ActionRestore = "Resotre"
-	// ActionRemove 直接删除
-	ActionRemove = "Remove"
+	// ActionDestory 硬删除
+	ActionDestory = "Destory"
 )
 
 // IDRegexp ID正则表达式
@@ -41,11 +41,9 @@ var (
 	// WriteActions 写操作
 	WriteActions = []string{ActionStore, ActionUpdate, ActionUpdateFields}
 	// DeleteActions 删除操作
-	DeleteActions = []string{ActionDestory, ActionRestore}
+	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理操作
-	AdminActions = []string{ActionList, ActionPage, ActionStore, ActionUpdate, ActionDestory, ActionRestore}
-	// AllActions 全部操作
-	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionStore, ActionUpdate, ActionUpdateFields, ActionDestory, ActionRestore}
+	AdminActions = []string{ActionGetByID, ActionPage}
 	// ErrAction --
 	ErrAction = errors.New("不支持Action")
 )
@@ -94,11 +92,6 @@ func (service *HTTPService) HandleBeforeUpdateFunc(handler BeforeUpdateFunc) {
 	service.beforeUpdateFunc = handler
 }
 
-// CustomActions --
-func (service *HTTPService) CustomActions() ([]*HTTPAction, error) {
-	return nil, nil
-}
-
 // Action --
 func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 	var path string
@@ -132,17 +125,17 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 		path = "/" + IDRegexp + "/fields"
 		handlerFunc = service.UpdateFields
 		method = "PUT"
-	case ActionDestory:
-		path = "/" + IDRegexp
-		handlerFunc = service.Destory
+	case ActionRemove:
+		path = "/" + IDRegexp + "/remove"
+		handlerFunc = service.Remove
 		method = "DELETE"
 	case ActionRestore:
 		path = "/" + IDRegexp + "/restore"
 		handlerFunc = service.Restore
 		method = "DELETE"
-	case ActionRemove:
-		path = "/" + IDRegexp + "/remove"
-		handlerFunc = service.Remove
+	case ActionDestory:
+		path = "/" + IDRegexp + "/destroy"
+		handlerFunc = service.Destory
 		method = "DELETE"
 	}
 	if handlerFunc != nil {
@@ -155,7 +148,7 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 	idRequest, err := DecodeIDRequest(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
@@ -174,7 +167,7 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err = gormRepository.Get(model, idRequest); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
@@ -195,7 +188,7 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -203,7 +196,7 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Get(model, filterRequest); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	OkResponse().
@@ -215,7 +208,7 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -223,7 +216,7 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	}
 	list := reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.List(list, filterRequest); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	OkResponse().
@@ -235,7 +228,7 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageRequest, err := DecodePageRequest(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.filterFunc != nil {
@@ -244,7 +237,7 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageResponse := PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.Page(&pageResponse, pageRequest); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	OkResponse().
@@ -257,18 +250,18 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeStoreFunc != nil {
 		model, err = service.beforeStoreFunc(model)
 		if err != nil {
-			FailResponse(err.Error()).JSON(w)
+			InternalErrorResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.Store(model); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	OkResponse().
@@ -280,23 +273,23 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeUpdateFunc != nil {
 		model, id, err = service.beforeUpdateFunc(model, id)
 		if err != nil {
-			FailResponse(err.Error()).JSON(w)
+			InternalErrorResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.Update(model, id); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
@@ -314,28 +307,28 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err := gormRepository.Get(model, id); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	fields, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if service.beforeUpdateFunc != nil {
 		fields, id, err = service.beforeUpdateFunc(fields, id)
 		if err != nil {
-			FailResponse(err.Error()).JSON(w)
+			InternalErrorResponse(err.Error()).JSON(w)
 			return
 		}
 	}
 	if err = gormRepository.UpdateFields(model, fields); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
@@ -349,16 +342,16 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 		JSON(w)
 }
 
-// Destory 软删除
-func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
+// Remove 软删除
+func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Destroy(model, id); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
@@ -376,12 +369,12 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Restore(model, id); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {
@@ -395,16 +388,16 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 		JSON(w)
 }
 
-// Remove 直接删除
-func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
+// Destory 直接删除
+func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		RequestErrorResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Remove(model, id); err != nil {
-		FailResponse(err.Error()).JSON(w)
+		InternalErrorResponse(err.Error()).JSON(w)
 		return
 	}
 	if cacher != nil {

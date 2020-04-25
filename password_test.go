@@ -7,11 +7,11 @@ func TestBcrypt(t *testing.T) {
 
 	hashed, err := GeneratePassword(test)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	err = ComparePassword(hashed, test)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 }

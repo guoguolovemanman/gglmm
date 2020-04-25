@@ -26,6 +26,11 @@ func (test Test) Cache() bool {
 	return true
 }
 
+// TestFunc --
+func TestFunc(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // RPCTestService --
 type RPCTestService struct {
 	repository *gglmm.GormRepository
@@ -39,17 +44,9 @@ func NewRPCTestService() *RPCTestService {
 }
 
 // Actions --
-func (service *RPCTestService) Actions(cmd string, actionInfos *[]gglmm.RPCActionInfo) error {
-	*actionInfos = append(*actionInfos, gglmm.RPCActionInfo{
-		Name:     "Get",
-		Request:  "string",
-		Response: "*Test",
-	})
-	*actionInfos = append(*actionInfos, gglmm.RPCActionInfo{
-		Name:     "List",
-		Request:  "gglmm.FilterRequest",
-		Response: "*[]Test",
-	})
+func (service *RPCTestService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
+	*actions = append(*actions, gglmm.NewRPCAction("Get", "string", "*Test"))
+	*actions = append(*actions, gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"))
 	return nil
 }
 
@@ -81,12 +78,17 @@ func main() {
 	testHTTPService := gglmm.NewHTTPService(Test{})
 	testHTTPService.HandleBeforeStoreFunc(beforeStore)
 	testHTTPService.HandleBeforeUpdateFunc(beforeUpdate)
-	gglmm.HandleHTTP(testHTTPService, "/test").
-		Middleware(gglmm.Middleware{
+	gglmm.HandleHTTP("/test", testHTTPService).
+		Action(gglmm.Middleware{
 			Name: "example",
-			Func: middlewareFunc, // 登录态中间件请参考gglmm-account
-		}).
-		Action(gglmm.AllActions)
+			Func: middlewareFunc,
+		}, gglmm.ReadActions, gglmm.WriteActions, gglmm.DeleteActions)
+
+	gglmm.HandleHTTPAction("/test_func", TestFunc, "GET", "POST").
+		Middleware(gglmm.Middleware{
+			Name: "test_func",
+			Func: middlewareFunc,
+		})
 
 	gglmm.RegisterRPC(NewRPCTestService())
 

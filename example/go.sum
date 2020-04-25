@@ -96,7 +96,9 @@ github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/tencentyun/cos-go-sdk-v5 v0.0.0-20200120023323-87ff3bc489ac/go.mod h1:wQBO5HdAkLjj2q6XQiIfDSP8DXDNrppDRw2Kp/1BODA=
+github.com/tencentyun/cos-go-sdk-v5 v0.7.4/go.mod h1:wQBO5HdAkLjj2q6XQiIfDSP8DXDNrppDRw2Kp/1BODA=
 github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200114083554-ddec1bbea416/go.mod h1:b18KQa4IxHbxeseW1GcZox53d7J0z39VNONTxvvlkXw=
+github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20200224031959-e05dcbd8be5a/go.mod h1:b18KQa4IxHbxeseW1GcZox53d7J0z39VNONTxvvlkXw=
 github.com/weihongguo/gglmm-account v0.0.0-20200317144519-84e6a1300420/go.mod h1:6CLilHivoZxv+9O8gX1V+BSqpnTnTVNEk5GY8NH5IJY=
 github.com/weihongguo/gglmm-tencentyun v0.0.0-20200331141323-f4b9922f09e6/go.mod h1:w75c1NC7FbMdMdqTT2QhRwF9FoYXNoPk++00U/4WGCw=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=

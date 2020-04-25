@@ -7,41 +7,38 @@ import (
 
 type UserID int64
 
-func (id *UserID) Authorization() *Authorization {
+func (id UserID) Authorization() *Authorization {
 	return &Authorization{
-		Type: "test",
-		ID:   int64(*id),
+		Type: "testType",
+		ID:   int64(id),
 	}
 }
 
-func TestRequestContext(t *testing.T) {
+func TestAuthorization(t *testing.T) {
 	userID := UserID(1)
-	authorizationToken, jwtClaims, err := GenerateAuthorizationToken(&userID, JWTExpires, "test")
+	authorizationToken, _, err := GenerateAuthorizationToken(userID, JWTExpires, "testSecret")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 	}
-	t.Log(authorizationToken, jwtClaims)
 
 	r1, err := http.NewRequest("GET", "/test", nil)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 	}
 	r1.Header.Add("Authorization", "Bearer "+authorizationToken)
 
 	authorizationToken = GetAuthorizationToken(r1)
-	authorization, jwtClaims, err := ParseAuthorizationToken(authorizationToken, "test")
-	t.Log(authorization, jwtClaims)
+	_, _, err = ParseAuthorizationToken(authorizationToken, "testSecret")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	r2 := RequestWithAuthorization(r1, userID.Authorization())
-	id, err := GetAuthorizationID(r2, "test")
+	id, err := GetAuthorizationID(r2, "testType")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 	}
 	if id != 1 {
-		t.Log(id)
-		t.Fail()
+		t.Fatal(id)
 	}
 }

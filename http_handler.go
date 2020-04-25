@@ -1,51 +1,43 @@
 package gglmm
 
-import "net/http"
-
-// HTTPAction --
-type HTTPAction struct {
-	Path        string
-	HandlerFunc http.HandlerFunc
-	Method      string
-}
-
-// NewHTTPAction --
-func NewHTTPAction(path string, handlerFunc http.HandlerFunc, method string) *HTTPAction {
-	return &HTTPAction{
-		Path:        path,
-		HandlerFunc: handlerFunc,
-		Method:      method,
-	}
-}
-
 // HTTPHandler 提供HTTP服务接口
 type HTTPHandler interface {
-	CustomActions() ([]*HTTPAction, error)
 	Action(action string) (*HTTPAction, error)
+}
+
+// MiddlewareAction --
+type MiddlewareAction struct {
+	middlewares []Middleware
+	actions     []string
 }
 
 // HTTPHandlerConfig --
 type HTTPHandlerConfig struct {
-	HTTPHandler HTTPHandler
-	Path        string
-	Actions     []string
-	Middlewares []Middleware
+	path              string
+	httpHandler       HTTPHandler
+	middlewareActions []MiddlewareAction
 }
 
 // Action --
-func (config *HTTPHandlerConfig) Action(actions ...string) *HTTPHandlerConfig {
-	if config.Actions == nil {
-		config.Actions = make([]string, 0)
+func (config *HTTPHandlerConfig) Action(params ...interface{}) *HTTPHandlerConfig {
+	middlewares := make([]Middleware, 0)
+	actions := make([]string, 0)
+	for _, param := range params {
+		if middleware, ok := param.(Middleware); ok {
+			middlewares = append(middlewares, middleware)
+		} else if middlewareSlice, ok := param.([]Middleware); ok {
+			middlewares = append(middlewares, middlewareSlice...)
+		} else if action, ok := param.(string); ok {
+			actions = append(actions, action)
+		} else if actionSlice, ok := param.([]string); ok {
+			actions = append(actions, actionSlice...)
+		}
 	}
-	config.Actions = append(config.Actions, actions...)
-	return config
-}
-
-// Middleware --
-func (config *HTTPHandlerConfig) Middleware(middlewares ...Middleware) *HTTPHandlerConfig {
-	if config.Middlewares == nil {
-		config.Middlewares = make([]Middleware, 0)
+	if len(actions) > 0 {
+		if config.middlewareActions == nil {
+			config.middlewareActions = make([]MiddlewareAction, 0)
+		}
+		config.middlewareActions = append(config.middlewareActions, MiddlewareAction{middlewares: middlewares, actions: actions})
 	}
-	config.Middlewares = append(config.Middlewares, middlewares...)
 	return config
 }
