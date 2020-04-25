@@ -22,19 +22,25 @@ func PanicResponse() Middleware {
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
-					var response *Response
 					if recover := recover(); recover != nil {
 						switch panic := recover.(type) {
 						case string:
-							response = ErrorResponse(panic)
+							ErrorResponse(panic).
+								AddData("url", r.RequestURI).
+								JSON(w)
 						case error:
-							response = ErrorResponse(panic.Error())
+							ErrorResponse("服务忙，请稍后再试").
+								AddData("url", r.RequestURI).
+								AddData("error", panic.Error()).
+								JSON(w)
+						default:
+							ErrorResponse("服务忙，请稍后再试").
+								AddData("url", r.RequestURI).
+								AddData("error", "未知错误").
+								JSON(w)
+							log.Println(recover)
 						}
 					}
-					response.
-						AddData("method", r.Method).
-						AddData("url", r.RequestURI).
-						JSON(w)
 				}()
 				next.ServeHTTP(w, r)
 			})
@@ -90,7 +96,7 @@ func TimeLogger() Middleware {
 				start := time.Now().UnixNano()
 				next.ServeHTTP(w, r)
 				end := time.Now().UnixNano()
-				log.Printf("[%-16d] %s", (end - start), r.RequestURI)
+				log.Printf("%8.3fms %s", float64((end-start)/1000)/1000, r.RequestURI)
 			})
 		},
 	}
