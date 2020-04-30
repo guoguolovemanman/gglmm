@@ -18,8 +18,8 @@ const (
 	ActionList = "List"
 	// ActionPage 分页
 	ActionPage = "page"
-	// ActionStore 保存
-	ActionStore = "Store"
+	// ActionCreate 保存
+	ActionCreate = "create"
 	// ActionUpdate 更新整体
 	ActionUpdate = "Update"
 	// ActionUpdateFields 更新多个字段
@@ -39,7 +39,7 @@ var (
 	// ReadActions 读操作
 	ReadActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage}
 	// WriteActions 写操作
-	WriteActions = []string{ActionStore, ActionUpdate, ActionUpdateFields}
+	WriteActions = []string{ActionCreate, ActionUpdate, ActionUpdateFields}
 	// DeleteActions 删除操作
 	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理操作
@@ -51,19 +51,23 @@ var (
 // FilterFunc 过滤函数
 type FilterFunc func(filters []Filter, r *http.Request) []Filter
 
-// BeforeStoreFunc 保存前调用
-type BeforeStoreFunc func(model interface{}) (interface{}, error)
+// BeforeCreateFunc 保存前调用
+type BeforeCreateFunc func(model interface{}) (interface{}, error)
 
 // BeforeUpdateFunc 更新前调用
 type BeforeUpdateFunc func(model interface{}, id int64) (interface{}, int64, error)
+
+// BeforeDeleteFunc 删除前调用
+type BeforeDeleteFunc func(model interface{}) (interface{}, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
 	modelType        reflect.Type
 	modelValue       reflect.Value
 	filterFunc       FilterFunc
-	beforeStoreFunc  BeforeStoreFunc
+	beforeCreateFunc BeforeCreateFunc
 	beforeUpdateFunc BeforeUpdateFunc
+	beforeDeleteFunc BeforeDeleteFunc
 }
 
 // NewHTTPService 新建HTTP服务
@@ -78,18 +82,27 @@ func NewHTTPService(model interface{}) *HTTPService {
 }
 
 // HandleFilterFunc 设置过滤参数函数
-func (service *HTTPService) HandleFilterFunc(handler FilterFunc) {
+func (service *HTTPService) HandleFilterFunc(handler FilterFunc) *HTTPService {
 	service.filterFunc = handler
+	return service
 }
 
-// HandleBeforeStoreFunc 设置保存前执行函数
-func (service *HTTPService) HandleBeforeStoreFunc(handler BeforeStoreFunc) {
-	service.beforeStoreFunc = handler
+// HandleBeforeCreateFunc 设置保存前执行函数
+func (service *HTTPService) HandleBeforeCreateFunc(handler BeforeCreateFunc) *HTTPService {
+	service.beforeCreateFunc = handler
+	return service
 }
 
 // HandleBeforeUpdateFunc 设置更新前执行函数
-func (service *HTTPService) HandleBeforeUpdateFunc(handler BeforeUpdateFunc) {
+func (service *HTTPService) HandleBeforeUpdateFunc(handler BeforeUpdateFunc) *HTTPService {
 	service.beforeUpdateFunc = handler
+	return service
+}
+
+// HandleBeforeDeleteFunc 设置更新前执行函数
+func (service *HTTPService) HandleBeforeDeleteFunc(handler BeforeDeleteFunc) *HTTPService {
+	service.beforeDeleteFunc = handler
+	return service
 }
 
 // Action --
@@ -114,7 +127,7 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 		path = "/page"
 		handlerFunc = service.Page
 		method = "POST"
-	case ActionStore:
+	case ActionCreate:
 		handlerFunc = service.Store
 		method = "POST"
 	case ActionUpdate:
@@ -253,8 +266,8 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 		ErrorResponse(err.Error()).JSON(w)
 		return
 	}
-	if service.beforeStoreFunc != nil {
-		model, err = service.beforeStoreFunc(model)
+	if service.beforeCreateFunc != nil {
+		model, err = service.beforeCreateFunc(model)
 		if err != nil {
 			ErrorResponse(err.Error()).JSON(w)
 			return
@@ -350,7 +363,17 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormRepository.Destroy(model, id); err != nil {
+	if service.beforeDeleteFunc != nil {
+		if err := gormRepository.Get(model, id); err != nil {
+			ErrorResponse(err.Error()).JSON(w)
+			return
+		}
+		if _, err := service.beforeDeleteFunc(model); err != nil {
+			ErrorResponse(err.Error()).JSON(w)
+			return
+		}
+	}
+	if err = gormRepository.Remove(model, id); err != nil {
 		ErrorResponse(err.Error()).JSON(w)
 		return
 	}
@@ -396,7 +419,17 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormRepository.Remove(model, id); err != nil {
+	if service.beforeDeleteFunc != nil {
+		if err := gormRepository.Get(model, id); err != nil {
+			ErrorResponse(err.Error()).JSON(w)
+			return
+		}
+		if _, err := service.beforeDeleteFunc(model); err != nil {
+			ErrorResponse(err.Error()).JSON(w)
+			return
+		}
+	}
+	if err = gormRepository.Destroy(model, id); err != nil {
 		ErrorResponse(err.Error()).JSON(w)
 		return
 	}
