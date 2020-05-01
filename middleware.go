@@ -97,7 +97,7 @@ func TimeLogger() Middleware {
 				start := time.Now().UnixNano()
 				next.ServeHTTP(w, r)
 				end := time.Now().UnixNano()
-				log.Printf("%8.3fms %s", float64((end-start)/1000)/1000, r.RequestURI)
+				log.Printf("%8.3fms %8s %s", float64((end-start)/1000)/1000, r.Method, r.RequestURI)
 			})
 		},
 	}
