@@ -1,8 +1,12 @@
 package gglmm
 
 import (
+	"errors"
 	"time"
 )
+
+// ErrModelType --
+var ErrModelType = errors.New("模型类型错误")
 
 // Model 基本模型类型
 type Model struct {

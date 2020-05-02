@@ -1,18 +1,12 @@
 package gglmm
 
-// Status --
-type Status struct {
-	Value int8   `json:"value"`
-	Name  string `json:"name"`
-}
-
 var (
 	//StatusInvalid --
-	StatusInvalid = Status{-128, "无效"}
+	StatusInvalid = ConfigInt8{Value: -128, Name: "无效"}
 	// StatusFrozen --
-	StatusFrozen = Status{-127, "冻结"}
+	StatusFrozen = ConfigInt8{Value: -127, Name: "冻结"}
 	// StatusValid --
-	StatusValid = Status{1, "有效"}
+	StatusValid = ConfigInt8{Value: 1, Name: "有效"}
 	// Statuses --
-	Statuses = []Status{StatusValid, StatusFrozen, StatusInvalid}
+	Statuses = []ConfigInt8{StatusValid, StatusFrozen, StatusInvalid}
 )

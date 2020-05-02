@@ -8,6 +8,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// ErrPathVar --
+var ErrPathVar = errors.New("路径参数错误")
+
 // PathVars --
 func PathVars(r *http.Request) map[string]string {
 	return mux.Vars(r)
@@ -18,7 +21,7 @@ func PathVar(r *http.Request, key string) (string, error) {
 	vars := mux.Vars(r)
 	value, ok := vars[key]
 	if !ok {
-		return "", errors.New("not found")
+		return "", ErrPathVar
 	}
 	return value, nil
 }

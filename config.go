@@ -7,6 +7,18 @@ import (
 	"strings"
 )
 
+// ConfigInt8 --
+type ConfigInt8 struct {
+	Value int8   `json:"value"`
+	Name  string `json:"name"`
+}
+
+// ConfigString --
+type ConfigString struct {
+	Value string `json:"value"`
+	Name  string `json:"name"`
+}
+
 // ConfigAPI --
 type ConfigAPI struct {
 	Address string

@@ -2,7 +2,6 @@ package gglmm
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -11,27 +10,25 @@ import (
 )
 
 // DecodeIDRequest 解码ID请求
-func DecodeIDRequest(r *http.Request) (IDRequest, error) {
-	var id int64
-	idRequest := IDRequest{}
+func DecodeIDRequest(r *http.Request) (*IDRequest, error) {
 	id, err := PathVarID(r)
 	if err != nil {
 		idQuery := r.FormValue("id")
 		if idQuery == "" {
-			return idRequest, errors.New("not found id")
+			return nil, ErrRequest
 		}
 		id, err = strconv.ParseInt(idQuery, 10, 64)
 		if err != nil {
-			return idRequest, err
+			return nil, err
 		}
 	}
-	idRequest.ID = id
-	preloads := []string{}
+	idRequest := &IDRequest{
+		ID: id,
+	}
 	preloadsQuery := r.FormValue("preloads")
 	if preloadsQuery != "" {
-		preloads = append(preloads, strings.Split(preloadsQuery, ",")...)
+		idRequest.Preloads = strings.Split(preloadsQuery, ",")
 	}
-	idRequest.Preloads = preloads
 	return idRequest, nil
 }
 

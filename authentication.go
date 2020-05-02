@@ -19,6 +19,15 @@ const (
 	AuthorizationRequestKey AuthorizationKey = "gglmm-authorization"
 )
 
+var (
+	// ErrAuthorizationToken --
+	ErrAuthorizationToken = errors.New("authorization token error")
+	// ErrAuthorizaitonNotFound --
+	ErrAuthorizaitonNotFound = errors.New("authorization not found")
+	// ErrAuthorizaitonType --
+	ErrAuthorizaitonType = errors.New("authorization type error")
+)
+
 // Authorization 认证信息
 type Authorization struct {
 	Type      string `json:"type"`
@@ -55,7 +64,7 @@ func ParseAuthorizationToken(tokenString string, secret string) (*Authorization,
 	authorization := &Authorization{}
 	err = json.Unmarshal([]byte(jwtClaims.Subject), authorization)
 	if err != nil {
-		return nil, nil, errors.New("cannot convert subject to jwtSubject")
+		return nil, nil, ErrAuthorizationToken
 	}
 	return authorization, jwtClaims, nil
 }
@@ -74,11 +83,11 @@ func RequestWithAuthorization(r *http.Request, authorization *Authorization) *ht
 func GetAuthorization(r *http.Request) (*Authorization, error) {
 	value := r.Context().Value(AuthorizationRequestKey)
 	if value == nil {
-		return nil, errors.New("jwtsubject error")
+		return nil, ErrAuthorizaitonNotFound
 	}
 	authorization, ok := value.(*Authorization)
 	if !ok {
-		return nil, errors.New("jwtsubject type error")
+		return nil, ErrAuthorizaitonNotFound
 	}
 	return authorization, nil
 }
@@ -99,7 +108,7 @@ func GetAuthorizationID(r *http.Request, checkType string) (int64, error) {
 		return 0, err
 	}
 	if authorization.Type != checkType {
-		return 0, errors.New("jwtsubject type check fail")
+		return 0, ErrAuthorizaitonType
 	}
 	return authorization.ID, nil
 }
@@ -132,7 +141,7 @@ func jwtParseClaims(tokenString string, secret string) (*jwt.StandardClaims, err
 		return nil, err
 	}
 	if !token.Valid {
-		return nil, errors.New("cannot convert claim to jwt.StandardClaims")
+		return nil, ErrAuthorizationToken
 	}
 	return jwtClaims, nil
 }

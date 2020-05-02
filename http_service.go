@@ -43,7 +43,10 @@ var (
 	// DeleteActions 删除操作
 	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理操作
-	AdminActions = []string{ActionGetByID, ActionPage}
+	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
+)
+
+var (
 	// ErrAction --
 	ErrAction = errors.New("不支持Action")
 )

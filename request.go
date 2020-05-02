@@ -31,8 +31,8 @@ const (
 	FirstPageIndex = 1
 )
 
-// ErrRequestParam 请求参数错误
-var ErrRequestParam = errors.New("请求参数错误！")
+// ErrRequest 请求错误
+var ErrRequest = errors.New("请求参数错误！")
 
 // IDRequest --
 type IDRequest struct {
