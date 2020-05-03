@@ -87,6 +87,17 @@ func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	if !filter.Check() {
 		return nil, ErrFilter
 	}
+	if filter.Field == FilterFieldDeleted {
+		if deleted, ok := filter.Value.(string); ok {
+			if deleted == FilterValueAll {
+				return db.Unscoped(), nil
+			}
+			if deleted == FilterValueDeleted {
+				return db.Unscoped().Where("deleted_at is not null"), nil
+			}
+		}
+		return db, nil
+	}
 	switch filter.Operate {
 	case FilterOperateEqual:
 		return db.Where(filter.Field+" = ?", filter.Value), nil
@@ -106,8 +117,9 @@ func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 		return gormFilterBetween(db, filter)
 	case FilterOperateLike:
 		return gormFilterLike(db, filter)
+	default:
+		return nil, ErrFilterOperate
 	}
-	return nil, ErrFilterOperate
 }
 
 func gormFilterIn(db *gorm.DB, filter Filter) (*gorm.DB, error) {
@@ -142,12 +154,10 @@ func gormFilterLike(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	if !ok {
 		return nil, ErrFilterValueType
 	}
-
 	fields := strings.Split(filter.Field, FilterSeparator)
 	values := strings.Split(stringValue, FilterSeparator)
 	var wheres = []string{}
 	var likes []interface{}
-
 	count := 0
 	wheres = append(wheres, "(")
 	for _, field := range fields {
@@ -162,6 +172,5 @@ func gormFilterLike(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 		}
 	}
 	wheres = append(wheres, ")")
-
 	return db.Where(strings.Join(wheres, " "), likes...), nil
 }

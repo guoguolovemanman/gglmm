@@ -47,6 +47,15 @@ type Filter struct {
 	Value   interface{} `json:"value"`
 }
 
+const (
+	// FilterFieldDeleted --
+	FilterFieldDeleted = "deleted"
+	// FilterValueAll --
+	FilterValueAll = "all"
+	// FilterValueDeleted --
+	FilterValueDeleted = "deleted"
+)
+
 // Check --
 func (filter Filter) Check() bool {
 	if filter.Field == "" {
