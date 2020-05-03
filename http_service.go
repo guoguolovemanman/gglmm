@@ -44,6 +44,8 @@ var (
 	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理操作
 	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
+	// AllActions 所有Action
+	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
 )
 
 var (
@@ -138,9 +140,9 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 		handlerFunc = service.Update
 		method = "PUT"
 	case ActionUpdateFields:
-		path = "/" + IDRegexp + "/fields"
+		path = "/" + IDRegexp
 		handlerFunc = service.UpdateFields
-		method = "PUT"
+		method = "PATCH"
 	case ActionRemove:
 		path = "/" + IDRegexp + "/remove"
 		handlerFunc = service.Remove
