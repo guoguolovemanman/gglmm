@@ -89,10 +89,10 @@ func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	}
 	if filter.Field == FilterFieldDeleted {
 		if deleted, ok := filter.Value.(string); ok {
-			if deleted == FilterValueAll {
+			if deleted == FilterValueAll.Value {
 				return db.Unscoped(), nil
 			}
-			if deleted == FilterValueDeleted {
+			if deleted == FilterValueDeleted.Value {
 				return db.Unscoped().Where("deleted_at is not null"), nil
 			}
 		}

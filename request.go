@@ -47,13 +47,14 @@ type Filter struct {
 	Value   interface{} `json:"value"`
 }
 
-const (
-	// FilterFieldDeleted --
-	FilterFieldDeleted = "deleted"
+// FilterFieldDeleted --
+const FilterFieldDeleted = "deleted"
+
+var (
 	// FilterValueAll --
-	FilterValueAll = "all"
+	FilterValueAll = ConfigString{Value: "all", Name: "所有"}
 	// FilterValueDeleted --
-	FilterValueDeleted = "deleted"
+	FilterValueDeleted = ConfigString{Value: "deleted", Name: "已删除"}
 )
 
 // Check --
