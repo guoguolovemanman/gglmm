@@ -5,6 +5,45 @@ import (
 	"errors"
 	"io/ioutil"
 	"strings"
+
+	"github.com/jinzhu/gorm"
+)
+
+var (
+	// ErrConfigFile --
+	ErrConfigFile = errors.New("配置文件错误")
+
+	// ErrRequest 请求错误
+	ErrRequest = errors.New("请求参数错误")
+
+	// ErrAuthorizationToken --
+	ErrAuthorizationToken = errors.New("Authorization凭证错误")
+	// ErrAuthorizaitonNotFound --
+	ErrAuthorizaitonNotFound = errors.New("Authorization不存在")
+	// ErrAuthorizaitonType --
+	ErrAuthorizaitonType = errors.New("Authorization类型错误")
+
+	// ErrGormRecordNotFound --
+	ErrGormRecordNotFound = gorm.ErrRecordNotFound
+	// ErrFilter --
+	ErrFilter = errors.New("过滤参数错误")
+	// ErrFilterValueType --
+	ErrFilterValueType = errors.New("过滤值类型错误")
+	// ErrFilterValueSize --
+	ErrFilterValueSize = errors.New("过滤值大小错误")
+	// ErrFilterOperate --
+	ErrFilterOperate = errors.New("过滤操作错误")
+
+	// ErrAction --
+	ErrAction = errors.New("不支持Action")
+
+	// ErrModelType --
+	ErrModelType = errors.New("模型类型错误")
+	// ErrModelCanNotDeleted --
+	ErrModelCanNotDeleted = errors.New("模型不可删除")
+
+	// ErrPathVar --
+	ErrPathVar = errors.New("路径参数错误")
 )
 
 // ConfigInt8 --
@@ -118,7 +157,7 @@ func ParseConfigFile(file string, config ConfigChecker) error {
 		return err
 	}
 	if !config.Check() {
-		return errors.New("config check fail")
+		return ErrConfigFile
 	}
 	return nil
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"net/rpc"
@@ -75,9 +74,9 @@ func main() {
 
 	gglmm.BasePath("/api/example")
 
-	testHTTPService := gglmm.NewHTTPService(Test{})
-	testHTTPService.HandleBeforeStoreFunc(beforeStore)
-	testHTTPService.HandleBeforeUpdateFunc(beforeUpdate)
+	testHTTPService := gglmm.NewHTTPService(Test{}).
+		HandleBeforeCreateFunc(beforeCreate).
+		HandleBeforeUpdateFunc(beforeUpdate)
 	gglmm.HandleHTTP("/test", testHTTPService).
 		Action(gglmm.Middleware{
 			Name: "example",
@@ -106,11 +105,11 @@ func middlewareFunc(next http.Handler) http.Handler {
 	})
 }
 
-func beforeStore(model interface{}) (interface{}, error) {
+func beforeCreate(model interface{}) (interface{}, error) {
 	log.Printf("%#v\n", model)
 	test, ok := model.(*Test)
 	if !ok {
-		return nil, errors.New("type error")
+		return nil, gglmm.ErrModelType
 	}
 	test.StringValue = "string"
 	return test, nil
@@ -119,7 +118,7 @@ func beforeStore(model interface{}) (interface{}, error) {
 func beforeUpdate(model interface{}, id int64) (interface{}, int64, error) {
 	test, ok := model.(*Test)
 	if !ok {
-		return nil, 0, errors.New("type error")
+		return nil, 0, gglmm.ErrModelType
 	}
 	test.StringValue = "string"
 	return test, id, nil

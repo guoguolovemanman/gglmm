@@ -1,15 +1,11 @@
 package gglmm
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 )
-
-// ErrPathVar --
-var ErrPathVar = errors.New("路径参数错误")
 
 // PathVars --
 func PathVars(r *http.Request) map[string]string {

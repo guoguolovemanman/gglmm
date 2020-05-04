@@ -1,7 +1,6 @@
 package gglmm
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -47,19 +46,6 @@ func NewGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLife
 
 	return db
 }
-
-var (
-	// ErrGormRecordNotFound --
-	ErrGormRecordNotFound = gorm.ErrRecordNotFound
-	// ErrFilter --
-	ErrFilter = errors.New("过滤参数错误")
-	// ErrFilterValueType --
-	ErrFilterValueType = errors.New("过滤值类型错误")
-	// ErrFilterValueSize --
-	ErrFilterValueSize = errors.New("过滤值大小错误")
-	// ErrFilterOperate --
-	ErrFilterOperate = errors.New("过滤操作错误")
-)
 
 func gormFilterRequest(db *gorm.DB, filterRequest FilterRequest) (*gorm.DB, error) {
 	db, err := gormFilters(db, filterRequest.Filters)

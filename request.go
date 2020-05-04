@@ -1,9 +1,5 @@
 package gglmm
 
-import (
-	"errors"
-)
-
 const (
 	// FilterOperateEqual 等于
 	FilterOperateEqual = "="
@@ -30,15 +26,6 @@ const (
 	// FirstPageIndex 第一页
 	FirstPageIndex = 1
 )
-
-// ErrRequest 请求错误
-var ErrRequest = errors.New("请求参数错误！")
-
-// IDRequest --
-type IDRequest struct {
-	ID       int64    `json:"id"`
-	Preloads []string `json:"preloads"`
-}
 
 // Filter 过滤参数
 type Filter struct {
@@ -69,6 +56,12 @@ func (filter Filter) Check() bool {
 		return false
 	}
 	return true
+}
+
+// IDRequest --
+type IDRequest struct {
+	ID       int64    `json:"id"`
+	Preloads []string `json:"preloads"`
 }
 
 // FilterRequest 分页请求

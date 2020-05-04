@@ -3,7 +3,6 @@ package gglmm
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -17,15 +16,6 @@ type AuthorizationKey string
 const (
 	// AuthorizationRequestKey 认证信息请求建
 	AuthorizationRequestKey AuthorizationKey = "gglmm-authorization"
-)
-
-var (
-	// ErrAuthorizationToken --
-	ErrAuthorizationToken = errors.New("authorization token error")
-	// ErrAuthorizaitonNotFound --
-	ErrAuthorizaitonNotFound = errors.New("authorization not found")
-	// ErrAuthorizaitonType --
-	ErrAuthorizaitonType = errors.New("authorization type error")
 )
 
 // Authorization 认证信息

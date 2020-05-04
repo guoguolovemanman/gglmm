@@ -1,7 +1,6 @@
 package gglmm
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"reflect"
@@ -46,11 +45,6 @@ var (
 	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
 	// AllActions 所有Action
 	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
-)
-
-var (
-	// ErrAction --
-	ErrAction = errors.New("不支持Action")
 )
 
 // FilterFunc 过滤函数
