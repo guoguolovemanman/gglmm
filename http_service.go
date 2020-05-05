@@ -35,13 +35,13 @@ const (
 const IDRegexp = "{id:[0-9]+}"
 
 var (
-	// ReadActions 读操作
+	// ReadActions 读Action
 	ReadActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage}
-	// WriteActions 写操作
+	// WriteActions 写Action
 	WriteActions = []string{ActionCreate, ActionUpdate, ActionUpdateFields}
-	// DeleteActions 删除操作
+	// DeleteActions 删除Action
 	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
-	// AdminActions 管理操作
+	// AdminActions 管理Action
 	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
 	// AllActions 所有Action
 	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}

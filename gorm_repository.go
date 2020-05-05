@@ -62,8 +62,12 @@ func (repository *GormRepository) preloadDB(preloads []string) *gorm.DB {
 func (repository *GormRepository) Get(model interface{}, request interface{}) error {
 	if idRequest, ok := request.(IDRequest); ok {
 		return repository.getByID(model, idRequest)
+	} else if idRequest, ok := request.(*IDRequest); ok {
+		return repository.getByID(model, *idRequest)
 	} else if filterRequest, ok := request.(FilterRequest); ok {
 		return repository.getByFilter(model, filterRequest)
+	} else if filterRequest, ok := request.(*FilterRequest); ok {
+		return repository.getByFilter(model, *filterRequest)
 	} else if id, ok := request.(int64); ok {
 		idRequest := IDRequest{
 			ID: id,

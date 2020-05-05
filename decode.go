@@ -15,7 +15,7 @@ func DecodeIDRequest(r *http.Request) (*IDRequest, error) {
 	if err != nil {
 		idQuery := r.FormValue("id")
 		if idQuery == "" {
-			return nil, ErrRequest
+			return nil, err
 		}
 		id, err = strconv.ParseInt(idQuery, 10, 64)
 		if err != nil {
