@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,6 +14,31 @@ import (
 type Middleware struct {
 	Name string
 	Func mux.MiddlewareFunc
+}
+
+// ErrPanic --
+type ErrPanic struct {
+	file    string
+	line    int
+	message string
+}
+
+// Panic --
+func Panic(param interface{}) {
+	errPanic := ErrPanic{}
+	switch err := param.(type) {
+	case string:
+		errPanic.message = err
+	case error:
+		errPanic.message = err.Error()
+	default:
+		errPanic.message = "服务忙，请稍后再试"
+	}
+	if _, file, line, ok := runtime.Caller(1); ok {
+		errPanic.file = file
+		errPanic.line = line
+	}
+	panic(errPanic)
 }
 
 // PanicResponse --
@@ -27,6 +53,12 @@ func PanicResponse() Middleware {
 						case string:
 							ErrorResponse(panic).
 								AddData("url", r.RequestURI).
+								JSON(w)
+						case ErrPanic:
+							ErrorResponse(panic.message).
+								AddData("url", r.RequestURI).
+								AddData("file", panic.file).
+								AddData("line", panic.line).
 								JSON(w)
 						case error:
 							ErrorResponse("服务忙，请稍后再试").

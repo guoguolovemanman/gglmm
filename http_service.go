@@ -160,8 +160,7 @@ func (service *HTTPService) Action(action string) (*HTTPAction, error) {
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 	idRequest, err := DecodeIDRequest(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if cacher != nil {
@@ -179,8 +178,7 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err = gormRepository.Get(model, idRequest); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
@@ -200,16 +198,14 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Get(model, filterRequest); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
@@ -220,16 +216,14 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	filterRequest, err := DecodeFilterRequest(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	list := reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.List(list, filterRequest); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	OkResponse().
 		AddData(MultiKey(service.modelValue), list).
@@ -240,8 +234,7 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageRequest, err := DecodePageRequest(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.filterFunc != nil {
 		pageRequest.Filters = service.filterFunc(pageRequest.Filters, r)
@@ -249,8 +242,7 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	pageResponse := PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
 	if err = gormRepository.Page(&pageResponse, pageRequest); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	OkResponse().
 		AddData(MultiKey(service.modelValue), pageResponse.List).
@@ -262,19 +254,16 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.beforeCreateFunc != nil {
 		model, err = service.beforeCreateFunc(model)
 		if err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 	}
 	if err = gormRepository.Store(model); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
@@ -285,24 +274,20 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.beforeUpdateFunc != nil {
 		model, id, err = service.beforeUpdateFunc(model, id)
 		if err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 	}
 	if err = gormRepository.Update(model, id); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
@@ -319,29 +304,24 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err := gormRepository.Get(model, id); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	fields, err := DecodeModelPtr(r, service.modelType)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if service.beforeUpdateFunc != nil {
 		fields, id, err = service.beforeUpdateFunc(fields, id)
 		if err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 	}
 	if err = gormRepository.UpdateFields(model, fields); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
@@ -358,23 +338,19 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
 		if err := gormRepository.Get(model, id); err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 	}
 	if err = gormRepository.Remove(model, id); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
@@ -391,13 +367,11 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if err = gormRepository.Restore(model, id); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
@@ -414,23 +388,19 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	id, err := PathVarID(r)
 	if err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
 		if err := gormRepository.Get(model, id); err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
-			ErrorResponse(err.Error()).JSON(w)
-			return
+			Panic(err)
 		}
 	}
 	if err = gormRepository.Destroy(model, id); err != nil {
-		ErrorResponse(err.Error()).JSON(w)
-		return
+		Panic(err)
 	}
 	if cacher != nil {
 		if SupportCache(service.modelValue) {
