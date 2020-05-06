@@ -49,21 +49,21 @@ func PanicResponse() Middleware {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
 					if recover := recover(); recover != nil {
-						switch panic := recover.(type) {
+						switch recover := recover.(type) {
 						case string:
-							ErrorResponse(panic).
+							ErrorResponse(recover).
 								AddData("url", r.RequestURI).
 								JSON(w)
 						case ErrPanic:
-							ErrorResponse(panic.message).
+							ErrorResponse(recover.message).
 								AddData("url", r.RequestURI).
-								AddData("file", panic.file).
-								AddData("line", panic.line).
+								AddData("file", recover.file).
+								AddData("line", recover.line).
 								JSON(w)
 						case error:
 							ErrorResponse("服务忙，请稍后再试").
 								AddData("url", r.RequestURI).
-								AddData("error", panic.Error()).
+								AddData("error", recover.Error()).
 								JSON(w)
 						default:
 							ErrorResponse("服务忙，请稍后再试").
