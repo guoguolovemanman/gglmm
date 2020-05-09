@@ -81,20 +81,24 @@ func main() {
 
 	gglmm.BasePath("/api")
 
+	// 认证中间间
+	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
+
+	exampleMiddleware := gglmm.Middleware{
+		Name: "ExampleMiddleware",
+		Func: middlewareFunc,
+	}
+
+	gglmm.UseTimeLogger(true)
+
 	exampleService := gglmm.NewHTTPService(Example{}).
 		HandleBeforeCreateFunc(beforeCreate).
 		HandleBeforeUpdateFunc(beforeUpdate)
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(gglmm.Middleware{
-			Name: "ExampleMiddleware",
-			Func: middlewareFunc,
-		}, gglmm.ReadActions, gglmm.WriteActions, gglmm.DeleteActions)
+		Action(exampleMiddleware, gglmm.ReadActions, gglmm.WriteActions, gglmm.DeleteActions)
 
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "GET", "POST").
-		Middleware(gglmm.Middleware{
-			Name: "ExampleMiddleware",
-			Func: middlewareFunc,
-		})
+		Middleware(exampleMiddleware)
 
 	gglmm.RegisterRPC(NewRPCExampleService())
 
