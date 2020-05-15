@@ -48,9 +48,20 @@ func DefaultCacher() Cacher
 func HandleHTTP(path string, httpHandler HTTPHandler) *HTTPHandlerConfig
 func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...string) *HTTPActionConfig
 ```
-  + HTTPService 实现了 HTTPHandler 接口
++ HTTPService 实现了 HTTPHandler 接口
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
+func (service *HTTPService) Action(action string) (*HTTPAction, error)
+func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) First(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) List(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request)
+func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request)
 ```
 + RPC
 ```golang
