@@ -61,7 +61,7 @@ func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...stri
 		methods = []string{"GET"}
 	}
 	config := &HTTPActionConfig{
-		httpAction: HTTPAction{
+		httpAction: &HTTPAction{
 			path:        path,
 			handlerFunc: handlerFunc,
 			methods:     methods,
@@ -74,7 +74,12 @@ func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...stri
 // RegisterRPC 注册RPCHandler
 // rpcHandler 处理者
 func RegisterRPC(rpcHandler RPCHandler) *RPCHandlerConfig {
-	return RegisterRPCName("", rpcHandler)
+	handlerType := reflect.TypeOf(rpcHandler)
+	if handlerType.Kind() == reflect.Ptr {
+		handlerType = handlerType.Elem()
+	}
+	name := handlerType.Name()
+	return RegisterRPCName(name, rpcHandler)
 }
 
 // RegisterRPCName 注册RPCHandler
@@ -174,18 +179,8 @@ func registerRPC() {
 		for _, action := range rpcActions {
 			rpcInfos = append(rpcInfos, action.String())
 		}
-		if config.Name == "" {
-			rpc.Register(config.RPCHandler)
-			handlerType := reflect.TypeOf(config.RPCHandler)
-			if handlerType.Kind() == reflect.Ptr {
-				handlerType = handlerType.Elem()
-			}
-			name := handlerType.Name()
-			log.Printf("%s: %s\n", name, strings.Join(rpcInfos, "; "))
-		} else {
-			rpc.RegisterName(config.Name, config.RPCHandler)
-			log.Printf("%s: %s\n", config.Name, strings.Join(rpcInfos, "; "))
-		}
+		rpc.RegisterName(config.Name, config.RPCHandler)
+		log.Printf("%s: %s\n", config.Name, strings.Join(rpcInfos, "; "))
 	}
 }
 

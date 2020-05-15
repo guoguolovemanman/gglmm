@@ -71,8 +71,8 @@ type HTTPService struct {
 
 // NewHTTPService 新建HTTP服务
 func NewHTTPService(model interface{}) *HTTPService {
-	if gormRepository == nil {
-		log.Fatal(ErrGormRepositoryNotRegister)
+	if gormDB == nil {
+		log.Fatal(ErrGormDBNotRegister)
 	}
 	return &HTTPService{
 		modelType:  reflect.TypeOf(model),
@@ -177,7 +177,7 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	if err = gormRepository.Get(model, idRequest); err != nil {
+	if err = gormDB.Get(model, idRequest); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {
@@ -204,7 +204,7 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormRepository.Get(model, filterRequest); err != nil {
+	if err = gormDB.Get(model, filterRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
@@ -222,7 +222,7 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	list := reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err = gormRepository.List(list, filterRequest); err != nil {
+	if err = gormDB.List(list, filterRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
@@ -241,7 +241,7 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	}
 	pageResponse := PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err = gormRepository.Page(&pageResponse, pageRequest); err != nil {
+	if err = gormDB.Page(&pageResponse, pageRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
@@ -262,7 +262,7 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 			Panic(err)
 		}
 	}
-	if err = gormRepository.Store(model); err != nil {
+	if err = gormDB.Store(model); err != nil {
 		Panic(err)
 	}
 	OkResponse().
@@ -286,7 +286,7 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 			Panic(err)
 		}
 	}
-	if err = gormRepository.Update(model, id); err != nil {
+	if err = gormDB.Update(model, id); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {
@@ -307,7 +307,7 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := gormRepository.Get(model, id); err != nil {
+	if err := gormDB.Get(model, id); err != nil {
 		Panic(err)
 	}
 	fields, err := DecodeModelPtr(r, service.modelType)
@@ -320,7 +320,7 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 			Panic(err)
 		}
 	}
-	if err = gormRepository.UpdateFields(model, fields); err != nil {
+	if err = gormDB.UpdateFields(model, fields); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {
@@ -342,14 +342,14 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := gormRepository.Get(model, id); err != nil {
+		if err := gormDB.Get(model, id); err != nil {
 			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormRepository.Remove(model, id); err != nil {
+	if err = gormDB.Remove(model, id); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {
@@ -370,7 +370,7 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormRepository.Restore(model, id); err != nil {
+	if err = gormDB.Restore(model, id); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {
@@ -392,14 +392,14 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := gormRepository.Get(model, id); err != nil {
+		if err := gormDB.Get(model, id); err != nil {
 			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormRepository.Destroy(model, id); err != nil {
+	if err = gormDB.Destroy(model, id); err != nil {
 		Panic(err)
 	}
 	if cacher != nil {

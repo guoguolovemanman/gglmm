@@ -39,26 +39,28 @@ func ExampleAction(w http.ResponseWriter, r *http.Request) {
 
 // RPCExampleService --
 type RPCExampleService struct {
-	repository *gglmm.GormRepository
+	gormDB *gglmm.GormDB
 }
 
 // NewRPCExampleService --
 func NewRPCExampleService() *RPCExampleService {
 	return &RPCExampleService{
-		repository: gglmm.DefaultGormRepository(),
+		gormDB: gglmm.DefaultGormDB(),
 	}
 }
 
 // Actions --
 func (service *RPCExampleService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
-	*actions = append(*actions, gglmm.NewRPCAction("Get", "string", "*Test"))
-	*actions = append(*actions, gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"))
+	*actions = append(*actions, []*gglmm.RPCAction{
+		gglmm.NewRPCAction("Get", "string", "*Test"),
+		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"),
+	}...)
 	return nil
 }
 
 // Get --
 func (service *RPCExampleService) Get(idRequest gglmm.IDRequest, example *Example) error {
-	err := service.repository.Get(example, idRequest)
+	err := service.gormDB.Get(example, idRequest)
 	if err != nil {
 		return err
 	}
@@ -67,13 +69,13 @@ func (service *RPCExampleService) Get(idRequest gglmm.IDRequest, example *Exampl
 
 // List --
 func (service *RPCExampleService) List(filterRequest gglmm.FilterRequest, examples *[]Example) error {
-	service.repository.List(examples, filterRequest)
+	service.gormDB.List(examples, filterRequest)
 	return nil
 }
 
 func main() {
-	gglmm.RegisterGormRepository("mysql", "example:123456@(127.0.0.1:3306)/example?charset=utf8mb4&parseTime=true&loc=UTC", 10, 5, 600)
-	defer gglmm.CloseGormRepository()
+	gglmm.RegisterGormDB("mysql", "example:123456@(127.0.0.1:3306)/example?charset=utf8mb4&parseTime=true&loc=UTC", 10, 5, 600)
+	defer gglmm.CloseGormDB()
 
 	redisCacher := redis.NewCacher("tcp", "127.0.0.1:6379", 5, 10, 3, 30)
 	defer redisCacher.Close()

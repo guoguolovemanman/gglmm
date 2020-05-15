@@ -9,8 +9,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// NewGormDBConfig --
-func NewGormDBConfig(config ConfigDB) *gorm.DB {
+// GormOpenConfig --
+func GormOpenConfig(config ConfigDB) *gorm.DB {
 	if !config.Check() {
 		log.Printf("%+v\n", config)
 		log.Fatal("DBConfig invalid")
@@ -20,7 +20,7 @@ func NewGormDBConfig(config ConfigDB) *gorm.DB {
 		log.Fatal(err)
 	}
 	url := config.User + ":" + config.Password + "@(" + config.Address + ")/" + config.Database + "?charset=utf8mb4&parseTime=true&loc=UTC"
-	return NewGormDB(
+	return GormOpen(
 		config.Dialect,
 		url,
 		config.MaxOpen,
@@ -29,8 +29,8 @@ func NewGormDBConfig(config ConfigDB) *gorm.DB {
 	)
 }
 
-// NewGormDB --
-func NewGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) *gorm.DB {
+// GormOpen --
+func GormOpen(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) *gorm.DB {
 	var err error
 	db, err := gorm.Open(dialect, url)
 	if err != nil {
