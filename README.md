@@ -5,9 +5,9 @@
 + `mm`：本人爱人昵称首字母
 ## 依赖
 + github.com/gorilla/mux  路由
-+ github.com/jinzhu/gorm  数据库操作
++ github.com/jinzhu/gorm  数据库
 + github.com/dgrijalva/jwt-go 认证
-+ golang.org/x/crypto 密码加密
++ golang.org/x/crypto 密码
 ## 基本模型
 ```golang
 type Model struct {
@@ -47,6 +47,10 @@ func DefaultCacher() Cacher
 ```golang
 func HandleHTTP(path string, httpHandler HTTPHandler) *HTTPHandlerConfig
 func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...string) *HTTPActionConfig
+```
+  + HTTPService 实现了 HTTPHandler 接口
+```golang
+func NewHTTPService(model interface{}) *HTTPService
 ```
 + RPC
 ```golang
