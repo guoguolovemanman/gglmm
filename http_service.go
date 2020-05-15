@@ -42,7 +42,7 @@ var (
 	// DeleteActions 删除Action
 	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理Action
-	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
+	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore}
 	// AllActions 所有Action
 	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
 )

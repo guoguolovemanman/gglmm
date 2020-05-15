@@ -97,7 +97,7 @@ func main() {
 		HandleBeforeCreateFunc(beforeCreate).
 		HandleBeforeUpdateFunc(beforeUpdate)
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(exampleMiddleware, gglmm.ReadActions, gglmm.WriteActions, gglmm.DeleteActions)
+		Action(exampleMiddleware, gglmm.AllActions)
 
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "GET", "POST").
 		Middleware(exampleMiddleware)

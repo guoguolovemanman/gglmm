@@ -52,15 +52,26 @@ func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...stri
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
 func (service *HTTPService) Action(action string) (*HTTPAction, error)
+
+// GET basePath/resourcePath/{id:[0-9]+} 根据ID查询
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request)
+// POST basePaht/resourcePaht/fist 根据条件查询第一个
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request)
+// POST basePaht/resourcePaht/list 根据条件查询，输出列表
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request)
+// POST basePaht/resourcePaht/page 根据条件查询，输出分页
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request)
+// POST basePaht/resourcePaht 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request)
+// PUT basePaht/resourcePaht/{id:[0-9]+} 更新整体
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request)
+// PATCH basePaht/resourcePaht/{id:[0-9]+} 更新部分字段
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
+// DELETE basePaht/resourcePaht/{id:[0-9]+}/remove 软删除
 func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request)
+// DELETE basePaht/resourcePaht/{id:[0-9]+}/restore 恢复软删除
 func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request)
+// DELETE basePaht/resourcePaht/{id:[0-9]+}/destroy 硬删除
 func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request)
 ```
 + RPC
