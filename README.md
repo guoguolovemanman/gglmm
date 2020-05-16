@@ -7,7 +7,6 @@
 + github.com/gorilla/mux  路由
 + github.com/jinzhu/gorm  数据库
 + github.com/dgrijalva/jwt-go 认证
-+ golang.org/x/crypto 密码
 ## 基本模型
 ```golang
 type Model struct {
@@ -130,4 +129,9 @@ func RegisterRPC(rpcHandler RPCHandler) *RPCHandlerConfig
 
 // 注册RPCHandler，指定名称
 func RegisterRPCName(name string, rpcHandler RPCHandler) *RPCHandlerConfig
+```
++ 启动服务
+```golang
+func ListenAndServe(address string)
+func ListenAndServeConfig(config ConfigAPI)
 ```

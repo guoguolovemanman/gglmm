@@ -32,25 +32,42 @@ func (example Example) Cache() bool {
 	return true
 }
 
+// ExampleService --
+type ExampleService struct {
+	*gglmm.HTTPService
+}
+
+// NewExampleService --
+func NewExampleService() *ExampleService {
+	return &ExampleService{
+		HTTPService: gglmm.NewHTTPService(Example{}),
+	}
+}
+
+// ExampleAction --
+func (service *ExampleService) ExampleAction(w http.ResponseWriter, r *http.Request) {
+	gglmm.OkResponse().JSON(w)
+}
+
 // ExampleAction --
 func ExampleAction(w http.ResponseWriter, r *http.Request) {
 	gglmm.OkResponse().JSON(w)
 }
 
-// RPCExampleService --
-type RPCExampleService struct {
+// ExampleRPCService --
+type ExampleRPCService struct {
 	gormDB *gglmm.GormDB
 }
 
-// NewRPCExampleService --
-func NewRPCExampleService() *RPCExampleService {
-	return &RPCExampleService{
+// NewExampleRPCService --
+func NewExampleRPCService() *ExampleRPCService {
+	return &ExampleRPCService{
 		gormDB: gglmm.DefaultGormDB(),
 	}
 }
 
 // Actions --
-func (service *RPCExampleService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
+func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
 	*actions = append(*actions, []*gglmm.RPCAction{
 		gglmm.NewRPCAction("Get", "string", "*Test"),
 		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"),
@@ -59,7 +76,7 @@ func (service *RPCExampleService) Actions(cmd string, actions *[]*gglmm.RPCActio
 }
 
 // Get --
-func (service *RPCExampleService) Get(idRequest gglmm.IDRequest, example *Example) error {
+func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *Example) error {
 	err := service.gormDB.Get(example, idRequest)
 	if err != nil {
 		return err
@@ -68,7 +85,7 @@ func (service *RPCExampleService) Get(idRequest gglmm.IDRequest, example *Exampl
 }
 
 // List --
-func (service *RPCExampleService) List(filterRequest gglmm.FilterRequest, examples *[]Example) error {
+func (service *ExampleRPCService) List(filterRequest gglmm.FilterRequest, examples *[]Example) error {
 	service.gormDB.List(examples, filterRequest)
 	return nil
 }
@@ -86,23 +103,45 @@ func main() {
 	// 认证中间间
 	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
 
+	gglmm.UseTimeLogger(true)
+
+	exampleService := NewExampleService()
+
+	exampleService.
+		HandleBeforeCreateFunc(beforeCreate).
+		HandleBeforeUpdateFunc(beforeUpdate)
+
+	readMiddleware := gglmm.Middleware{
+		Name: "ReadMiddleware",
+		Func: middlewareFunc,
+	}
+	gglmm.HandleHTTP("/example", exampleService).
+		Action(readMiddleware, gglmm.ReadActions)
+
+	writeMiddleware := gglmm.Middleware{
+		Name: "WriteMiddleware",
+		Func: middlewareFunc,
+	}
+	gglmm.HandleHTTP("/example", exampleService).
+		Action(writeMiddleware, gglmm.WriteActions)
+
+	deleteMiddleware := gglmm.Middleware{
+		Name: "DeleteMiddleware",
+		Func: middlewareFunc,
+	}
+	gglmm.HandleHTTP("/example", exampleService).
+		Action(deleteMiddleware, gglmm.DeleteActions)
+
 	exampleMiddleware := gglmm.Middleware{
 		Name: "ExampleMiddleware",
 		Func: middlewareFunc,
 	}
-
-	gglmm.UseTimeLogger(true)
-
-	exampleService := gglmm.NewHTTPService(Example{}).
-		HandleBeforeCreateFunc(beforeCreate).
-		HandleBeforeUpdateFunc(beforeUpdate)
-	gglmm.HandleHTTP("/example", exampleService).
-		Action(exampleMiddleware, gglmm.AllActions)
-
-	gglmm.HandleHTTPAction("/example_action", ExampleAction, "GET", "POST").
+	gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").
+		Middleware(exampleMiddleware)
+	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
 		Middleware(exampleMiddleware)
 
-	gglmm.RegisterRPC(NewRPCExampleService())
+	gglmm.RegisterRPC(NewExampleRPCService())
 
 	go testHTTP()
 	go testRPC()
@@ -173,9 +212,9 @@ func testRPC() {
 		ID: 1,
 	}
 	example := Example{}
-	err = client.Call("RPCExampleService.Get", idRequest, &example)
+	err = client.Call("ExampleRPCService.Get", idRequest, &example)
 	if err != nil {
-		log.Println("RPCExampleService.Get", err)
+		log.Println("ExampleRPCService.Get", err)
 	} else {
 		log.Printf("Get: \n%+v", example)
 	}
@@ -186,9 +225,9 @@ func testRPC() {
 	filterRequest.AddFilter("id", gglmm.FilterOperateGreaterEqual, 2)
 	filterRequest.AddFilter("id", gglmm.FilterOperateLessThan, 4)
 	examples := make([]Example, 0)
-	err = client.Call("RPCExampleService.List", filterRequest, &examples)
+	err = client.Call("ExampleRPCService.List", filterRequest, &examples)
 	if err != nil {
-		log.Println("RPCExampleService.List", err)
+		log.Println("ExampleRPCService.List", err)
 	} else {
 		log.Printf("List: \n%+v", examples)
 	}
