@@ -1,8 +1,8 @@
 # gglmm
-## `gglmm` 再怎么理解？
+## `gglmm` 怎么理解？
 + `gg`：本人昵称首字母
 + `l`: love首字母
-+ `mm`：本人爱人昵称首字母
++ `mm`：爱人昵称首字母
 ## 依赖
 + github.com/gorilla/mux  路由
 + github.com/jinzhu/gorm  数据库
@@ -19,14 +19,14 @@ type Model struct {
 ```
 ## 用法
 + **详见example**
-+ 数据库 -- Gorm
++ 数据库 -- 依赖gorm库
 ```golang
 func RegisterGormDBConfig(config ConfigDB)
 func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration)
 func CloseGormDB()
 func DefaultGormDB() *GormDB
 ```
-+ 缓存（参考gglmm-redis库）
++ 缓存（gglmm-redis库提供了一个依赖redis的实现）
 ```golang
 func RegisterCacher(cacherInstance Cacher)
 func DefaultCacher() Cacher
@@ -37,19 +37,22 @@ type HTTPHandler interface {
 	Action(action Action) (*HTTPAction, error)
 }
 
-// 注册HTTPHandler（HTTPAction的集合）
+// 注册HTTPHandler（HTTPAction集合）
 func HandleHTTP(path string, httpHandler HTTPHandler) *HTTPHandlerConfig
 
+// 声明HTTPHandler的Action，本次声明的所有Middleware作用于所有Action
 // param: Middleware | []Middleware | Action | []Action
-// Middleware 从前到后作用
-// 本次Action调用的所有Middleware作用于所有Action
+// Middleware 按顺序作用
 func (config *HTTPHandlerConfig) Action(params ...interface{}) *HTTPHandlerConfig
 
-// 注册当个HTTPAction
+// 注册HTTPAction
 func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...string) *HTTPActionConfig
+
+// 声明HTTPAction的Middleware
+// Middleware 按顺序作用
 func (config *HTTPActionConfig) Middleware(middlewares ...Middleware)
 ```
-+ HTTPService 实现了 HTTPHandler 接口
++ HTTPService 内部的`HTTPHandler`实现
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
 
@@ -58,6 +61,9 @@ func (model Model) ResponseKey() [2]string
 
 // 模型自定义是否支持缓存，默认false
 func (model Model) Cache() bool
+
+// 根据Action名称注册HTTPAction
+func (service *HTTPService) Action(action Action) (*HTTPAction, error)
 
 // 内部实现了以下Action
 const (
@@ -82,9 +88,6 @@ const (
 	// ActionDestory 硬删除
 	ActionDestory Action = "Destory"
 )
-
-// 根据Action名称注册HTTPAction
-func (service *HTTPService) Action(action Action) (*HTTPAction, error)
 
 // GET basePath/resourcePath/{id:[0-9]+} 根据ID查询
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request)
@@ -121,6 +124,10 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request)
 type RPCHandler interface {
 	Actions(cmd string, actions *[]*RPCAction) error
 }
+
+// 注册RPCHandler
 func RegisterRPC(rpcHandler RPCHandler) *RPCHandlerConfig
+
+// 注册RPCHandler，指定名称
 func RegisterRPCName(name string, rpcHandler RPCHandler) *RPCHandlerConfig
 ```
