@@ -8,27 +8,30 @@ import (
 	"strings"
 )
 
+// Action --
+type Action string
+
 const (
 	// ActionGetByID 根据ID拉取单个
-	ActionGetByID = "GetByID"
+	ActionGetByID Action = "GetByID"
 	// ActionFirst 根据条件拉取单个
-	ActionFirst = "First"
+	ActionFirst Action = "First"
 	// ActionList 列表
-	ActionList = "List"
+	ActionList Action = "List"
 	// ActionPage 分页
-	ActionPage = "page"
+	ActionPage Action = "page"
 	// ActionCreate 保存
-	ActionCreate = "create"
+	ActionCreate Action = "create"
 	// ActionUpdate 更新整体
-	ActionUpdate = "Update"
+	ActionUpdate Action = "Update"
 	// ActionUpdateFields 更新多个字段
-	ActionUpdateFields = "UpdateFields"
+	ActionUpdateFields Action = "UpdateFields"
 	// ActionRemove 软删除
-	ActionRemove = "Remove"
+	ActionRemove Action = "Remove"
 	// ActionRestore 恢复
-	ActionRestore = "Resotre"
+	ActionRestore Action = "Resotre"
 	// ActionDestory 硬删除
-	ActionDestory = "Destory"
+	ActionDestory Action = "Destory"
 )
 
 // IDRegexp ID正则表达式
@@ -36,15 +39,15 @@ const IDRegexp = "{id:[0-9]+}"
 
 var (
 	// ReadActions 读Action
-	ReadActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage}
+	ReadActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage}
 	// WriteActions 写Action
-	WriteActions = []string{ActionCreate, ActionUpdate, ActionUpdateFields}
+	WriteActions = []Action{ActionCreate, ActionUpdate, ActionUpdateFields}
 	// DeleteActions 删除Action
-	DeleteActions = []string{ActionRemove, ActionRestore, ActionDestory}
+	DeleteActions = []Action{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理Action
-	AdminActions = []string{ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore}
+	AdminActions = []Action{ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore}
 	// AllActions 所有Action
-	AllActions = []string{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
+	AllActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
 )
 
 // FilterFunc 过滤函数
@@ -105,7 +108,7 @@ func (service *HTTPService) HandleBeforeDeleteFunc(handler BeforeDeleteFunc) *HT
 }
 
 // Action --
-func (service *HTTPService) Action(action string) (*HTTPAction, error) {
+func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 	var path string
 	var handlerFunc http.HandlerFunc
 	var method string

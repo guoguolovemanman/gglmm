@@ -17,18 +17,6 @@ type Model struct {
 	DeletedAt *time.Time `json:"deletedAt"`
 }
 ```
-## HTTP接口
-```golang
-type HTTPHandler interface {
-	Action(action string) (*HTTPAction, error)
-}
-```
-## RPC接口
-```golang
-type RPCHandler interface {
-	Actions(cmd string, actions *[]*RPCAction) error
-}
-```
 ## 用法
 + **详见example**
 + 数据库 -- Gorm
@@ -45,13 +33,58 @@ func DefaultCacher() Cacher
 ```
 + HTTP
 ```golang
+type HTTPHandler interface {
+	Action(action Action) (*HTTPAction, error)
+}
+
+// 注册HTTPHandler（HTTPAction的集合）
 func HandleHTTP(path string, httpHandler HTTPHandler) *HTTPHandlerConfig
+
+// param: Middleware | []Middleware | Action | []Action
+// Middleware 从前到后作用
+// 本次Action调用的所有Middleware作用于所有Action
+func (config *HTTPHandlerConfig) Action(params ...interface{}) *HTTPHandlerConfig
+
+// 注册当个HTTPAction
 func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...string) *HTTPActionConfig
+func (config *HTTPActionConfig) Middleware(middlewares ...Middleware)
 ```
 + HTTPService 实现了 HTTPHandler 接口
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
-func (service *HTTPService) Action(action string) (*HTTPAction, error)
+
+// 模型自定义返回结果的Key，默认为[record, records]
+func (model Model) ResponseKey() [2]string
+
+// 模型自定义是否支持缓存，默认false
+func (model Model) Cache() bool
+
+// 内部实现了以下Action
+const (
+	// ActionGetByID 根据ID拉取单个
+	ActionGetByID Action = "GetByID"
+	// ActionFirst 根据条件拉取单个
+	ActionFirst Action = "First"
+	// ActionList 列表
+	ActionList Action = "List"
+	// ActionPage 分页
+	ActionPage Action = "page"
+	// ActionCreate 保存
+	ActionCreate Action = "create"
+	// ActionUpdate 更新整体
+	ActionUpdate Action = "Update"
+	// ActionUpdateFields 更新多个字段
+	ActionUpdateFields Action = "UpdateFields"
+	// ActionRemove 软删除
+	ActionRemove Action = "Remove"
+	// ActionRestore 恢复
+	ActionRestore Action = "Resotre"
+	// ActionDestory 硬删除
+	ActionDestory Action = "Destory"
+)
+
+// 根据Action名称注册HTTPAction
+func (service *HTTPService) Action(action Action) (*HTTPAction, error)
 
 // GET basePath/resourcePath/{id:[0-9]+} 根据ID查询
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request)
@@ -85,6 +118,9 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request)
 ```
 + RPC
 ```golang
+type RPCHandler interface {
+	Actions(cmd string, actions *[]*RPCAction) error
+}
 func RegisterRPC(rpcHandler RPCHandler) *RPCHandlerConfig
 func RegisterRPCName(name string, rpcHandler RPCHandler) *RPCHandlerConfig
 ```
