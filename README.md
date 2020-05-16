@@ -25,10 +25,9 @@ func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMa
 func CloseGormDB()
 func DefaultGormDB() *GormDB
 ```
-+ 缓存（gglmm-redis库提供了一个依赖redis的实现）
++ 缓存
 ```golang
-
-// Cacher 缓存接口
+// Cacher 缓存接口（gglmm-redis库提供了一个依赖redis的实现）
 type Cacher interface {
 	SetExpires(expires int)
 	Expires() int
