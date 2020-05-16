@@ -74,9 +74,9 @@ const (
 	// ActionList 列表
 	ActionList Action = "List"
 	// ActionPage 分页
-	ActionPage Action = "page"
+	ActionPage Action = "Page"
 	// ActionCreate 保存
-	ActionCreate Action = "create"
+	ActionCreate Action = "Create"
 	// ActionUpdate 更新整体
 	ActionUpdate Action = "Update"
 	// ActionUpdateFields 更新多个字段
