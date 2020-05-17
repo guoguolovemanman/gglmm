@@ -18,7 +18,7 @@ type Model struct {
 ```
 ## 用法
 + **详见example**
-+ 数据库 -- 依赖gorm库
++ 数据库 -- 依赖`gorm`库
 ```golang
 func RegisterGormDBConfig(config ConfigDB)
 func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration)
@@ -77,7 +77,8 @@ func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...stri
 // Middleware 按顺序作用
 func (config *HTTPActionConfig) Middleware(middlewares ...Middleware)
 ```
-+ HTTPService 内部的`HTTPHandler`实现
++ HTTPService
+  + 内部的`HTTPHandler`实现
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
 
