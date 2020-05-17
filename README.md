@@ -78,9 +78,10 @@ func HandleHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...stri
 func (config *HTTPActionConfig) Middleware(middlewares ...Middleware)
 ```
 + HTTPService
-  + 内部的`HTTPHandler`实现
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
+// `HTTPHandler`实现，根据Action名称注册HTTPAction
+func (service *HTTPService) Action(action Action) (*HTTPAction, error)
 
 // 模型自定义返回结果的Key，默认为[record, records]
 func (model Model) ResponseKey() [2]string
@@ -88,8 +89,7 @@ func (model Model) ResponseKey() [2]string
 // 模型自定义是否支持缓存，默认false
 func (model Model) Cache() bool
 
-// 根据Action名称注册HTTPAction
-func (service *HTTPService) Action(action Action) (*HTTPAction, error)
+
 
 // 内部实现了以下Action
 const (
