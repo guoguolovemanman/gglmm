@@ -80,7 +80,8 @@ func (config *HTTPActionConfig) Middleware(middlewares ...Middleware)
 + HTTPService
 ```golang
 func NewHTTPService(model interface{}) *HTTPService
-// `HTTPHandler`实现，根据Action名称注册HTTPAction
+
+// HTTPHandler的实现，根据Action名称注册HTTPAction
 func (service *HTTPService) Action(action Action) (*HTTPAction, error)
 
 // 模型自定义返回结果的Key，默认为[record, records]
