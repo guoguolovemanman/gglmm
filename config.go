@@ -16,12 +16,12 @@ var (
 	// ErrRequest 请求错误
 	ErrRequest = errors.New("请求参数错误")
 
-	// ErrAuthorizationToken --
-	ErrAuthorizationToken = errors.New("Authorization凭证错误")
-	// ErrAuthorizaitonNotFound --
-	ErrAuthorizaitonNotFound = errors.New("Authorization不存在")
-	// ErrAuthorizaitonType --
-	ErrAuthorizaitonType = errors.New("Authorization类型错误")
+	// ErrAuthJWT --
+	ErrAuthJWT = errors.New("Authorization凭证错误")
+	// ErrAuthInfoNotFound --
+	ErrAuthInfoNotFound = errors.New("Authorization不存在")
+	// ErrAuthType --
+	ErrAuthType = errors.New("Authorization类型错误")
 
 	// ErrGormRecordNotFound --
 	ErrGormRecordNotFound = gorm.ErrRecordNotFound

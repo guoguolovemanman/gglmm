@@ -7,8 +7,8 @@ import (
 
 type UserID int64
 
-func (id UserID) Authorization() *Authorization {
-	return &Authorization{
+func (id UserID) AuthInfo() *AuthInfo {
+	return &AuthInfo{
 		Type: "testType",
 		ID:   int64(id),
 	}
@@ -16,7 +16,7 @@ func (id UserID) Authorization() *Authorization {
 
 func TestAuthorization(t *testing.T) {
 	userID := UserID(1)
-	authorizationToken, _, err := GenerateAuthorizationToken(userID, JWTExpires, "testSecret")
+	authJWT, _, err := GenerateAuthJWT(userID, JWTExpires, "testSecret")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,16 +25,16 @@ func TestAuthorization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r1.Header.Add("Authorization", "Bearer "+authorizationToken)
+	r1.Header.Add("Authorization", "Bearer "+authJWT)
 
-	authorizationToken = GetAuthorizationToken(r1)
-	_, _, err = ParseAuthorizationToken(authorizationToken, "testSecret")
+	authJWT = GetAuthJWT(r1)
+	_, _, err = ParseAuthJWT(authJWT, "testSecret")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	r2 := RequestWithAuthorization(r1, userID.Authorization())
-	id, err := GetAuthorizationID(r2, "testType")
+	r2 := RequestWithAuthInfo(r1, userID.AuthInfo())
+	id, err := GetAuthID(r2, "testType")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -92,10 +92,12 @@ github.com/weihongguo/gglmm v0.0.0-20200517065742-d1a8279a8c2a h1:SfokupWwkTIcN4
 github.com/weihongguo/gglmm v0.0.0-20200517065742-d1a8279a8c2a/go.mod h1:RxIdM/c9un776iJ+PSoLh2Cx0pmHc7d4KksiS4adBCg=
 github.com/weihongguo/gglmm-redis v0.0.0-20200517083516-9e3764c92628 h1:CQ5GCShxg5FyZLG/6j9ElivTjX6UeGUESVnhy7VBbWA=
 github.com/weihongguo/gglmm-redis v0.0.0-20200517083516-9e3764c92628/go.mod h1:LeaMQAB71Vk3cVbtjw9xFzSTsfQN5PCzMOGEfYNrOhk=
+github.com/weihongguo/gglmm-wechat v0.0.0-20200518133046-485e3ba0daa3/go.mod h1:pmGkd9Zdn3OqtkUdb7NXXv3oiNGWkDSrNFHTAF8TF9Y=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd h1:GGJVjV8waZKRHrgwvtH66z9ZGVurTD1MT0n1Bb+q4aM=
 golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=

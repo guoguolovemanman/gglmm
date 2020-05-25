@@ -106,7 +106,6 @@ func main() {
 	gglmm.UseTimeLogger(true)
 
 	exampleService := NewExampleService()
-
 	exampleService.
 		HandleBeforeCreateFunc(beforeCreate).
 		HandleBeforeUpdateFunc(beforeUpdate)

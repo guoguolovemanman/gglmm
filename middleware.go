@@ -87,9 +87,9 @@ func JWTAuthentication(secrets ...string) Middleware {
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				for _, secret := range secrets {
-					authorization, _, err := ParseAuthorizationToken(GetAuthorizationToken(r), secret)
+					authInfo, _, err := ParseAuthJWT(GetAuthJWT(r), secret)
 					if err == nil {
-						r = RequestWithAuthorization(r, authorization)
+						r = RequestWithAuthInfo(r, authInfo)
 						next.ServeHTTP(w, r)
 						return
 					}
