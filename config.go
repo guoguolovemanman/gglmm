@@ -113,27 +113,6 @@ func (config ConfigDB) Check() bool {
 	return true
 }
 
-// ConfigJWT --
-type ConfigJWT struct {
-	Expires int64
-	Secret  string
-}
-
-// Check --
-func (config *ConfigJWT) Check(cmd string) bool {
-	if cmd == "all" || cmd == "write" {
-		if config.Expires <= 0 {
-			return false
-		}
-	}
-	if cmd == "all" || cmd == "read" {
-		if config.Secret == "" {
-			return false
-		}
-	}
-	return true
-}
-
 // ConfigChecker 配置检查
 type ConfigChecker interface {
 	Check() bool
