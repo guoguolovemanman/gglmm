@@ -137,9 +137,9 @@ func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 		handlerFunc = service.Update
 		method = "PUT"
 	case ActionUpdateFields:
-		path = "/" + IDRegexp
+		path = "/" + IDRegexp + "/fields"
 		handlerFunc = service.UpdateFields
-		method = "PATCH"
+		method = "PUT"
 	case ActionRemove:
 		path = "/" + IDRegexp + "/remove"
 		handlerFunc = service.Remove
