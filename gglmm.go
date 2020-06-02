@@ -38,6 +38,8 @@ func ListenAndServe(address string) {
 	handleHTTPAction(router)
 	http.Handle("/", router)
 
+	registerWS()
+
 	registerRPC()
 	rpc.HandleHTTP()
 

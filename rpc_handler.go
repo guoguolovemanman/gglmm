@@ -35,8 +35,8 @@ type RPCHandler interface {
 
 // RPCHandlerConfig --
 type RPCHandlerConfig struct {
-	Name       string
-	RPCHandler RPCHandler
+	name       string
+	rpcHandler RPCHandler
 }
 
 var rpcHandlerConfigs []*RPCHandlerConfig = nil
@@ -60,8 +60,8 @@ func RegisterRPCName(name string, rpcHandler RPCHandler) *RPCHandlerConfig {
 		rpcHandlerConfigs = make([]*RPCHandlerConfig, 0)
 	}
 	config := &RPCHandlerConfig{
-		Name:       name,
-		RPCHandler: rpcHandler,
+		name:       name,
+		rpcHandler: rpcHandler,
 	}
 	rpcHandlerConfigs = append(rpcHandlerConfigs, config)
 	return config
@@ -73,13 +73,13 @@ func registerRPC() {
 	}
 	for _, config := range rpcHandlerConfigs {
 		rpcActions := []*RPCAction{}
-		config.RPCHandler.Actions("all", &rpcActions)
+		config.rpcHandler.Actions("all", &rpcActions)
 		fmt.Println()
 		rpcInfos := []string{}
 		for _, action := range rpcActions {
 			rpcInfos = append(rpcInfos, action.String())
 		}
-		rpc.RegisterName(config.Name, config.RPCHandler)
-		log.Printf("%s: %s\n", config.Name, strings.Join(rpcInfos, "; "))
+		rpc.RegisterName(config.name, config.rpcHandler)
+		log.Printf("%s: %s\n", config.name, strings.Join(rpcInfos, "; "))
 	}
 }

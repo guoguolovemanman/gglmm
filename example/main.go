@@ -11,6 +11,8 @@ import (
 	"github.com/weihongguo/gglmm"
 	redis "github.com/weihongguo/gglmm-redis"
 
+	ws "github.com/gorilla/websocket"
+
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
@@ -52,6 +54,13 @@ func (service *ExampleService) ExampleAction(w http.ResponseWriter, r *http.Requ
 // ExampleAction --
 func ExampleAction(w http.ResponseWriter, r *http.Request) {
 	gglmm.OkResponse().JSON(w)
+}
+
+// TestWSHandler --
+func TestWSHandler(conn *ws.Conn, messageType int, message []byte) bool {
+	conn.WriteMessage(messageType, message)
+	conn.Close()
+	return true
 }
 
 // ExampleRPCService --
@@ -139,6 +148,8 @@ func main() {
 		Middleware(exampleMiddleware)
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
 		Middleware(exampleMiddleware)
+
+	gglmm.RegisterWS("/ws/test", TestWSHandler)
 
 	gglmm.RegisterRPC(NewExampleRPCService())
 
