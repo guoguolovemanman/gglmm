@@ -3,131 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/weihongguo/gglmm"
 	redis "github.com/weihongguo/gglmm-redis"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
-
-// Example --
-type Example struct {
-	gglmm.Model
-	IntValue    int     `json:"intValue"`
-	FloatValue  float64 `json:"floatValue"`
-	StringValue string  `json:"stringValue"`
-}
-
-// ResponseKey --
-func (example Example) ResponseKey() [2]string {
-	return [...]string{"example", "examples"}
-}
-
-// Cache --
-func (example Example) Cache() bool {
-	return true
-}
-
-// ExampleService --
-type ExampleService struct {
-	*gglmm.HTTPService
-}
-
-// NewExampleService --
-func NewExampleService() *ExampleService {
-	return &ExampleService{
-		HTTPService: gglmm.NewHTTPService(Example{}),
-	}
-}
-
-// ExampleAction --
-func (service *ExampleService) ExampleAction(w http.ResponseWriter, r *http.Request) {
-	gglmm.OkResponse().JSON(w)
-}
-
-// ExampleAction --
-func ExampleAction(w http.ResponseWriter, r *http.Request) {
-	gglmm.OkResponse().JSON(w)
-}
-
-var tick int = 0
-
-// TestWSHandler --
-func TestWSHandler(chanRequest <-chan *gglmm.WSMessage) <-chan *gglmm.WSMessage {
-	chanResponse := make(chan *gglmm.WSMessage)
-
-	go func() {
-		ticker := time.NewTicker(6 * time.Second)
-		defer func() {
-			close(chanResponse)
-			ticker.Stop()
-		}()
-
-		for {
-			select {
-			case message, ok := <-chanRequest:
-				if message == nil || !ok {
-					return
-				}
-				// log.Println("server handler receive ", string(message.Content))
-				// 查询结果
-				tick++
-				if tick > 5 {
-					log.Println("server handler normal")
-					chanResponse <- gglmm.NewWSMessage([]byte("success"), false)
-					return
-				}
-				if message.Close {
-					return
-				}
-			case <-ticker.C:
-				// 查询结果
-				log.Println("server handler timout")
-				chanResponse <- gglmm.NewWSMessage([]byte("fail"), true)
-				return
-			}
-		}
-	}()
-
-	return chanResponse
-}
-
-// ExampleRPCService --
-type ExampleRPCService struct {
-	gormDB *gglmm.GormDB
-}
-
-// NewExampleRPCService --
-func NewExampleRPCService() *ExampleRPCService {
-	return &ExampleRPCService{
-		gormDB: gglmm.DefaultGormDB(),
-	}
-}
-
-// Actions --
-func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
-	*actions = append(*actions, []*gglmm.RPCAction{
-		gglmm.NewRPCAction("Get", "string", "*Test"),
-		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"),
-	}...)
-	return nil
-}
-
-// Get --
-func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *Example) error {
-	err := service.gormDB.Get(example, idRequest)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// List --
-func (service *ExampleRPCService) List(filterRequest gglmm.FilterRequest, examples *[]Example) error {
-	service.gormDB.List(examples, filterRequest)
-	return nil
-}
 
 func main() {
 	gglmm.RegisterGormDB("mysql", "example:123456@(127.0.0.1:3306)/example?charset=utf8mb4&parseTime=true&loc=UTC", 10, 5, 600)
@@ -179,7 +60,8 @@ func main() {
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
 		Middleware(exampleMiddleware)
 
-	gglmm.HandleWS("/ws/example", TestWSHandler)
+	gglmm.HandleWS("/ws/once", OnceWSHandler)
+	gglmm.HandleWS("/ws/echo", EchoWSHandler)
 
 	gglmm.RegisterRPC(NewExampleRPCService())
 
