@@ -183,10 +183,6 @@ func main() {
 
 	gglmm.RegisterRPC(NewExampleRPCService())
 
-	// go testHTTP()
-	go testWS()
-	// go testRPC()
-
 	gglmm.ListenAndServe(":10000")
 }
 
