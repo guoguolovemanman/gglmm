@@ -144,9 +144,9 @@ func handleHTTP(router *mux.Router) {
 					path := config.path + httpAction.path
 					handleHTTPFunc(subrouter, path, httpAction.handlerFunc, httpAction.methods...)
 					if len(middlewares) > 0 {
-						log.Printf("%-16s %-60s %-80s\n", strings.Join(httpAction.methods, ", "), basePath+path, strings.Join(middlewares, ", "))
+						log.Printf("http %-16s %-60s %-80s\n", strings.Join(httpAction.methods, ", "), basePath+path, strings.Join(middlewares, ", "))
 					} else {
-						log.Printf("%-16s %-60s\n", strings.Join(httpAction.methods, ", "), basePath+path)
+						log.Printf("http %-16s %-60s\n", strings.Join(httpAction.methods, ", "), basePath+path)
 					}
 				}
 			}
@@ -175,9 +175,9 @@ func handleHTTPAction(router *mux.Router) {
 		}
 		handleHTTPFunc(subrouter, config.httpAction.path, config.httpAction.handlerFunc, config.httpAction.methods...)
 		if len(middlewares) > 0 {
-			log.Printf("%-16s %-60s %-80s\n", strings.Join(config.httpAction.methods, ", "), basePath+config.httpAction.path, strings.Join(middlewares, ", "))
+			log.Printf("http %-16s %-60s %-80s\n", strings.Join(config.httpAction.methods, ", "), basePath+config.httpAction.path, strings.Join(middlewares, ", "))
 		} else {
-			log.Printf("%-16s %-60s\n", strings.Join(config.httpAction.methods, ", "), basePath+config.httpAction.path)
+			log.Printf("http %-16s %-60s\n", strings.Join(config.httpAction.methods, ", "), basePath+config.httpAction.path)
 		}
 	}
 }

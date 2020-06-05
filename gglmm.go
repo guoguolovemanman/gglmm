@@ -38,7 +38,7 @@ func ListenAndServe(address string) {
 	handleHTTPAction(router)
 	http.Handle("/", router)
 
-	registerWS()
+	handleWS()
 
 	registerRPC()
 	rpc.HandleHTTP()

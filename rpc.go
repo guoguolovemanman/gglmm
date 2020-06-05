@@ -1,7 +1,6 @@
 package gglmm
 
 import (
-	"fmt"
 	"log"
 	"net/rpc"
 	"reflect"
@@ -74,12 +73,11 @@ func registerRPC() {
 	for _, config := range rpcHandlerConfigs {
 		rpcActions := []*RPCAction{}
 		config.rpcHandler.Actions("all", &rpcActions)
-		fmt.Println()
 		rpcInfos := []string{}
 		for _, action := range rpcActions {
 			rpcInfos = append(rpcInfos, action.String())
 		}
 		rpc.RegisterName(config.name, config.rpcHandler)
-		log.Printf("%s: %s\n", config.name, strings.Join(rpcInfos, "; "))
+		log.Printf("rpc %s %s\n", config.name, strings.Join(rpcInfos, "; "))
 	}
 }

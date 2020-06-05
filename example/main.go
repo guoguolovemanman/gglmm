@@ -1,17 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/rpc"
 	"time"
 
 	"github.com/weihongguo/gglmm"
 	redis "github.com/weihongguo/gglmm-redis"
-
-	ws "github.com/gorilla/websocket"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -56,11 +51,46 @@ func ExampleAction(w http.ResponseWriter, r *http.Request) {
 	gglmm.OkResponse().JSON(w)
 }
 
+var tick int = 0
+
 // TestWSHandler --
-func TestWSHandler(conn *ws.Conn, messageType int, message []byte) bool {
-	conn.WriteMessage(messageType, message)
-	conn.Close()
-	return true
+func TestWSHandler(chanRequest <-chan *gglmm.WSMessage) <-chan *gglmm.WSMessage {
+	chanResponse := make(chan *gglmm.WSMessage)
+
+	go func() {
+		ticker := time.NewTicker(6 * time.Second)
+		defer func() {
+			close(chanResponse)
+			ticker.Stop()
+		}()
+
+		for {
+			select {
+			case message, ok := <-chanRequest:
+				if message == nil || !ok {
+					return
+				}
+				// log.Println("server handler receive ", string(message.Content))
+				// 查询结果
+				tick++
+				if tick > 5 {
+					log.Println("server handler normal")
+					chanResponse <- gglmm.NewWSMessage([]byte("success"), false)
+					return
+				}
+				if message.Close {
+					return
+				}
+			case <-ticker.C:
+				// 查询结果
+				log.Println("server handler timout")
+				chanResponse <- gglmm.NewWSMessage([]byte("fail"), true)
+				return
+			}
+		}
+	}()
+
+	return chanResponse
 }
 
 // ExampleRPCService --
@@ -149,12 +179,13 @@ func main() {
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
 		Middleware(exampleMiddleware)
 
-	gglmm.RegisterWS("/ws/test", TestWSHandler)
+	gglmm.HandleWS("/ws/example", TestWSHandler)
 
 	gglmm.RegisterRPC(NewExampleRPCService())
 
-	go testHTTP()
-	go testRPC()
+	// go testHTTP()
+	go testWS()
+	// go testRPC()
 
 	gglmm.ListenAndServe(":10000")
 }
@@ -185,60 +216,4 @@ func beforeUpdate(model interface{}, id int64) (interface{}, int64, error) {
 	}
 	example.StringValue = "string"
 	return example, id, nil
-}
-
-func testHTTP() {
-	time.Sleep(4 * time.Second)
-
-	response, err := http.Get("http://localhost:10000/api/example/1")
-	if err != nil {
-		log.Println("http", err)
-		return
-	}
-	defer response.Body.Close()
-
-	result, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Println("ReadAll", err)
-		return
-	}
-
-	fmt.Println()
-	log.Println(string(result))
-}
-
-func testRPC() {
-	time.Sleep(2 * time.Second)
-
-	client, err := rpc.DialHTTP("tcp", ":10000")
-	if err != nil {
-		log.Println("rpc", err)
-		return
-	}
-
-	fmt.Println()
-
-	idRequest := gglmm.IDRequest{
-		ID: 1,
-	}
-	example := Example{}
-	err = client.Call("ExampleRPCService.Get", idRequest, &example)
-	if err != nil {
-		log.Println("ExampleRPCService.Get", err)
-	} else {
-		log.Printf("Get: \n%+v", example)
-	}
-
-	fmt.Println()
-
-	filterRequest := gglmm.FilterRequest{}
-	filterRequest.AddFilter("id", gglmm.FilterOperateGreaterEqual, 2)
-	filterRequest.AddFilter("id", gglmm.FilterOperateLessThan, 4)
-	examples := make([]Example, 0)
-	err = client.Call("ExampleRPCService.List", filterRequest, &examples)
-	if err != nil {
-		log.Println("ExampleRPCService.List", err)
-	} else {
-		log.Printf("List: \n%+v", examples)
-	}
 }
