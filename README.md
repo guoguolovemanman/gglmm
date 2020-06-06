@@ -165,7 +165,6 @@ type WSMessage struct {
 
 type WSHandler func(chanResponse chan<- *WSMessage, chanRequest <-chan *WSMessage)
 
-// HandleWS
 // 注册WSHandler
 func HandleWS(path string, wsHandler WSHandler) *WSHandlerConfig
 ```
