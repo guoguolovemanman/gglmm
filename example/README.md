@@ -9,6 +9,11 @@ type Example struct {
 }
 ```
 ## Server
++ 用法
+```shell
+go build
+./gglmm-example-server
+```
 + HTTP
 ```golang
 // 例子Service，基于框架的HTTPService
