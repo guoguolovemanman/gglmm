@@ -10,20 +10,61 @@ type Example struct {
 ```
 ## Server
 + HTTP
-  + [http] [GET             ] /api/example/{id:[0-9]+}                                     PanicResponse, ReadMiddleware, TimeLogger
-  + [http] [POST            ] /api/example/first                                           PanicResponse, ReadMiddleware, TimeLogger
-  + [http] [POST            ] /api/example/list                                            PanicResponse, ReadMiddleware, TimeLogger
-  + [http] [POST            ] /api/example/page                                            PanicResponse, ReadMiddleware, TimeLogger
-  + [http] [POST            ] /api/example                                                 PanicResponse, WriteMiddleware, TimeLogger
-  + [http] [PUT, POST       ] /api/example/{id:[0-9]+}                                     PanicResponse, WriteMiddleware, TimeLogger
-  + [http] [PATCH, PUT, POST] /api/example/{id:[0-9]+}/fields                              PanicResponse, WriteMiddleware, TimeLogger
-  + [http] [DELETE          ] /api/example/{id:[0-9]+}/remove                              PanicResponse, DeleteMiddleware, TimeLogger
-  + [http] [DELETE          ] /api/example/{id:[0-9]+}/restore                             PanicResponse, DeleteMiddleware, TimeLogger
-  + [http] [DELETE          ] /api/example/{id:[0-9]+}/destroy                             PanicResponse, DeleteMiddleware, TimeLogger
-  + [http] [GET             ] /api/example_action                                          PanicResponse, ExampleMiddleware, TimeLogger
-  + [http] [POST            ] /api/example_action                                          PanicResponse, ExampleMiddleware, TimeLogger
+```golang
+// 例子Service，基于框架的HTTPService
+type ExampleService struct {
+	*gglmm.HTTPService
+}
+exampleService := NewExampleService()
+
+// 读
+readMiddleware := gglmm.Middleware{
+  Name: "ReadMiddleware",
+  Func: middlewareFunc,
+}
+gglmm.HandleHTTP("/example", exampleService).Action(readMiddleware, gglmm.ReadActions)
+
+// 写
+writeMiddleware := gglmm.Middleware{
+  Name: "WriteMiddleware",
+  Func: middlewareFunc,
+}
+gglmm.HandleHTTP("/example", exampleService).Action(writeMiddleware, gglmm.WriteActions)
+
+// 删
+deleteMiddleware := gglmm.Middleware{
+  Name: "DeleteMiddleware",
+  Func: middlewareFunc,
+}
+gglmm.HandleHTTP("/example", exampleService).Action(deleteMiddleware, gglmm.DeleteActions)
+
+// 自定以
+exampleMiddleware := gglmm.Middleware{
+  Name: "ExampleMiddleware",
+  Func: middlewareFunc,
+}
+// Service内部函数
+gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").Middleware(exampleMiddleware)
+// 直接函数
+gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").Middleware(exampleMiddleware)
+```
 + RPC
-  + [  ws] /api/ws/once
-  + [  ws] /api/ws/echo
+```golang
+type ExampleRPCService struct {
+	gormDB *gglmm.GormDB
+}
+func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
+	*actions = append(*actions, []*gglmm.RPCAction{
+		gglmm.NewRPCAction("Get", "string", "*example.Example"),
+		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]example.Example"),
+	}...)
+	return nil
+}
+```
 + WS
-  + [ rpc] ExampleRPCService Get(string, *example.Example); List(gglmm.FilterRequest, *[]example.Example)
+```golang
+// 应搭一次
+gglmm.HandleWS("/ws/once", OnceWSHandler)
+// 回声
+gglmm.HandleWS("/ws/echo", EchoWSHandler)
+```
