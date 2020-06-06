@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/weihongguo/gglmm"
+	auth "github.com/weihongguo/gglmm-auth"
 	redis "github.com/weihongguo/gglmm-redis"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -24,7 +25,11 @@ func main() {
 	// 认证中间间
 	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
 
+	authMiddleware := auth.JWTAuthentication("example")
+
 	gglmm.UseTimeLogger(true)
+
+	gglmm.HandleHTTPAction("/login", LoginAction(3600, "example"), "GET", "POST")
 
 	exampleService := NewExampleService()
 	exampleService.
@@ -36,30 +41,30 @@ func main() {
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(readMiddleware, gglmm.ReadActions)
+		Action(authMiddleware, readMiddleware, gglmm.ReadActions)
 
 	writeMiddleware := gglmm.Middleware{
 		Name: "WriteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(writeMiddleware, gglmm.WriteActions)
+		Action(authMiddleware, writeMiddleware, gglmm.WriteActions)
 
 	deleteMiddleware := gglmm.Middleware{
 		Name: "DeleteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(deleteMiddleware, gglmm.DeleteActions)
+		Action(authMiddleware, deleteMiddleware, gglmm.DeleteActions)
 
 	exampleMiddleware := gglmm.Middleware{
 		Name: "ExampleMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").
-		Middleware(exampleMiddleware)
+		Middleware(authMiddleware, exampleMiddleware)
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
-		Middleware(exampleMiddleware)
+		Middleware(authMiddleware, exampleMiddleware)
 
 	gglmm.HandleWS("/ws/once", OnceWSHandler)
 	gglmm.HandleWS("/ws/echo", EchoWSHandler)
