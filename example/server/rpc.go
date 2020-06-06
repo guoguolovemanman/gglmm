@@ -21,8 +21,8 @@ func NewExampleRPCService() *ExampleRPCService {
 // Actions --
 func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCAction) error {
 	*actions = append(*actions, []*gglmm.RPCAction{
-		gglmm.NewRPCAction("Get", "string", "*Test"),
-		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]Test"),
+		gglmm.NewRPCAction("Get", "string", "*example.Example"),
+		gglmm.NewRPCAction("List", "gglmm.FilterRequest", "*[]example.Example"),
 	}...)
 	return nil
 }
