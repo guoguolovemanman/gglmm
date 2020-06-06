@@ -112,7 +112,7 @@ func handleWS() {
 	}
 	for _, config := range wsHandlerConfigs {
 		path := basePath + config.path
-		log.Printf("ws %s\n", path)
 		http.Handle(path, wsHandler(config.wsHandler))
+		log.Printf("[  ws] %s\n", path)
 	}
 }

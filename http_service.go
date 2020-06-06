@@ -111,50 +111,50 @@ func (service *HTTPService) HandleBeforeDeleteFunc(handler BeforeDeleteFunc) *HT
 func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 	var path string
 	var handlerFunc http.HandlerFunc
-	var method string
+	var methods []string
 	switch action {
 	case ActionGetByID:
 		path = "/" + IDRegexp
 		handlerFunc = service.GetByID
-		method = "GET"
+		methods = []string{"GET"}
 	case ActionFirst:
 		path = "/first"
 		handlerFunc = service.First
-		method = "POST"
+		methods = []string{"POST"}
 	case ActionList:
 		path = "/list"
 		handlerFunc = service.List
-		method = "POST"
+		methods = []string{"POST"}
 	case ActionPage:
 		path = "/page"
 		handlerFunc = service.Page
-		method = "POST"
+		methods = []string{"POST"}
 	case ActionCreate:
 		handlerFunc = service.Store
-		method = "POST"
+		methods = []string{"POST"}
 	case ActionUpdate:
 		path = "/" + IDRegexp
 		handlerFunc = service.Update
-		method = "PUT"
+		methods = []string{"PUT", "POST"}
 	case ActionUpdateFields:
 		path = "/" + IDRegexp + "/fields"
 		handlerFunc = service.UpdateFields
-		method = "PUT"
+		methods = []string{"PATCH", "PUT", "POST"}
 	case ActionRemove:
 		path = "/" + IDRegexp + "/remove"
 		handlerFunc = service.Remove
-		method = "DELETE"
+		methods = []string{"DELETE"}
 	case ActionRestore:
 		path = "/" + IDRegexp + "/restore"
 		handlerFunc = service.Restore
-		method = "DELETE"
+		methods = []string{"DELETE"}
 	case ActionDestory:
 		path = "/" + IDRegexp + "/destroy"
 		handlerFunc = service.Destory
-		method = "DELETE"
+		methods = []string{"DELETE"}
 	}
 	if handlerFunc != nil {
-		return NewHTTPAction(path, handlerFunc, method), nil
+		return NewHTTPAction(path, handlerFunc, methods...), nil
 	}
 	return nil, ErrAction
 }

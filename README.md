@@ -5,8 +5,8 @@
 + `mm`：爱人昵称首字母
 ## 依赖
 + github.com/gorilla/mux  路由
++ github.com/gorilla/websocket 套接字
 + github.com/jinzhu/gorm  数据库
-+ github.com/dgrijalva/jwt-go 认证
 ## 基本模型
 ```golang
 type Model struct {
@@ -90,8 +90,6 @@ func (model Model) ResponseKey() [2]string
 // 模型自定义是否支持缓存，默认false
 func (model Model) Cache() bool
 
-
-
 // 内部实现了以下Action
 const (
 	// ActionGetByID 根据ID拉取单个
@@ -131,10 +129,10 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request)
 // POST basePaht/resourcePaht 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request)
 
-// PUT basePaht/resourcePaht/{id:[0-9]+} 更新整体
+// PUT/POST basePaht/resourcePaht/{id:[0-9]+} 更新整体
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request)
 
-// PATCH basePaht/resourcePaht/{id:[0-9]+} 更新部分字段
+// PATCH/POST basePaht/resourcePaht/{id:[0-9]+} 更新部分字段
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 
 // DELETE basePaht/resourcePaht/{id:[0-9]+}/remove 软删除
@@ -157,6 +155,19 @@ func RegisterRPC(rpcHandler RPCHandler) *RPCHandlerConfig
 
 // 注册RPCHandler，指定名称
 func RegisterRPCName(name string, rpcHandler RPCHandler) *RPCHandlerConfig
+```
++ WebSocket
+```golang
+type WSMessage struct {
+	Content []byte
+	Over    bool
+}
+
+type WSHandler func(chanResponse chan<- *WSMessage, chanRequest <-chan *WSMessage)
+
+// HandleWS
+// 注册WSHandler
+func HandleWS(path string, wsHandler WSHandler) *WSHandlerConfig
 ```
 + 启动服务
 ```golang
