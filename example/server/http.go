@@ -3,26 +3,10 @@ package main
 import (
 	"net/http"
 
+	example "gglmm-example"
+
 	"github.com/weihongguo/gglmm"
 )
-
-// Example --
-type Example struct {
-	gglmm.Model
-	IntValue    int     `json:"intValue"`
-	FloatValue  float64 `json:"floatValue"`
-	StringValue string  `json:"stringValue"`
-}
-
-// ResponseKey --
-func (example Example) ResponseKey() [2]string {
-	return [...]string{"example", "examples"}
-}
-
-// Cache --
-func (example Example) Cache() bool {
-	return true
-}
 
 // ExampleService --
 type ExampleService struct {
@@ -32,7 +16,7 @@ type ExampleService struct {
 // NewExampleService --
 func NewExampleService() *ExampleService {
 	return &ExampleService{
-		HTTPService: gglmm.NewHTTPService(Example{}),
+		HTTPService: gglmm.NewHTTPService(example.Example{}),
 	}
 }
 

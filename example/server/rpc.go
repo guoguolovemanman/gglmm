@@ -1,6 +1,10 @@
 package main
 
-import "github.com/weihongguo/gglmm"
+import (
+	example "gglmm-example"
+
+	"github.com/weihongguo/gglmm"
+)
 
 // ExampleRPCService --
 type ExampleRPCService struct {
@@ -24,7 +28,7 @@ func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCActio
 }
 
 // Get --
-func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *Example) error {
+func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *example.Example) error {
 	err := service.gormDB.Get(example, idRequest)
 	if err != nil {
 		return err
@@ -33,7 +37,7 @@ func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *Exampl
 }
 
 // List --
-func (service *ExampleRPCService) List(filterRequest gglmm.FilterRequest, examples *[]Example) error {
+func (service *ExampleRPCService) List(filterRequest gglmm.FilterRequest, examples *[]example.Example) error {
 	service.gormDB.List(examples, filterRequest)
 	return nil
 }

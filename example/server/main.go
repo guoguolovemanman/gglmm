@@ -1,6 +1,7 @@
 package main
 
 import (
+	example "gglmm-example"
 	"log"
 	"net/http"
 
@@ -79,7 +80,7 @@ func middlewareFunc(next http.Handler) http.Handler {
 
 func beforeCreate(model interface{}) (interface{}, error) {
 	log.Printf("%#v\n", model)
-	example, ok := model.(*Example)
+	example, ok := model.(*example.Example)
 	if !ok {
 		return nil, gglmm.ErrModelType
 	}
@@ -88,7 +89,7 @@ func beforeCreate(model interface{}) (interface{}, error) {
 }
 
 func beforeUpdate(model interface{}, id int64) (interface{}, int64, error) {
-	example, ok := model.(*Example)
+	example, ok := model.(*example.Example)
 	if !ok {
 		return nil, 0, gglmm.ErrModelType
 	}

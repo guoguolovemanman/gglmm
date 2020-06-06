@@ -5,16 +5,10 @@ import (
 	"log"
 	"net/rpc"
 
+	example "gglmm-example"
+
 	"github.com/weihongguo/gglmm"
 )
-
-// Example --
-type Example struct {
-	gglmm.Model
-	IntValue    int     `json:"intValue"`
-	FloatValue  float64 `json:"floatValue"`
-	StringValue string  `json:"stringValue"`
-}
 
 func testRPC() {
 
@@ -29,12 +23,12 @@ func testRPC() {
 	idRequest := gglmm.IDRequest{
 		ID: 1,
 	}
-	example := Example{}
-	err = client.Call("ExampleRPCService.Get", idRequest, &example)
+	one := example.Example{}
+	err = client.Call("ExampleRPCService.Get", idRequest, &one)
 	if err != nil {
 		log.Println("ExampleRPCService.Get", err)
 	} else {
-		log.Printf("Get: \n%+v", example)
+		log.Printf("Get: \n%+v", one)
 	}
 
 	fmt.Println()
@@ -42,12 +36,12 @@ func testRPC() {
 	filterRequest := gglmm.FilterRequest{}
 	filterRequest.AddFilter("id", gglmm.FilterOperateGreaterEqual, 2)
 	filterRequest.AddFilter("id", gglmm.FilterOperateLessThan, 4)
-	examples := make([]Example, 0)
-	err = client.Call("ExampleRPCService.List", filterRequest, &examples)
+	list := make([]example.Example, 0)
+	err = client.Call("ExampleRPCService.List", filterRequest, &list)
 	if err != nil {
 		log.Println("ExampleRPCService.List", err)
 	} else {
-		log.Printf("List: \n%+v", examples)
+		log.Printf("List: \n%+v", list)
 	}
 }
 
