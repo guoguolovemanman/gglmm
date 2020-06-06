@@ -132,7 +132,7 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request)
 // PUT/POST basePaht/resourcePaht/{id:[0-9]+} 更新整体
 func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request)
 
-// PATCH/POST basePaht/resourcePaht/{id:[0-9]+} 更新部分字段
+// PATCH/PUT/POST basePaht/resourcePaht/{id:[0-9]+} 更新部分字段
 func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 
 // DELETE basePaht/resourcePaht/{id:[0-9]+}/remove 软删除
