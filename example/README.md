@@ -73,3 +73,22 @@ gglmm.HandleWS("/ws/once", OnceWSHandler)
 // 回声
 gglmm.HandleWS("/ws/echo", EchoWSHandler)
 ```
+## Client
+### HTTP
++ 用法
+```shell
+go build
+./gglmm-example-client-http
+```
+### RPC
++ 用法
+```shell
+go build
+./gglmm-example-client-rpc
+```
+### WS
++ 用法
+```shell
+go build
+./gglmm-example-client-ws
+```

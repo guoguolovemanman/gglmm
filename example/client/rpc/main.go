@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/rpc"
 
@@ -18,8 +17,6 @@ func testRPC() {
 		return
 	}
 
-	fmt.Println()
-
 	idRequest := gglmm.IDRequest{
 		ID: 1,
 	}
@@ -30,8 +27,6 @@ func testRPC() {
 	} else {
 		log.Printf("Get: \n%+v", one)
 	}
-
-	fmt.Println()
 
 	filterRequest := gglmm.FilterRequest{}
 	filterRequest.AddFilter("id", gglmm.FilterOperateGreaterEqual, 2)

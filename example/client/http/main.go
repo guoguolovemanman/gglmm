@@ -20,8 +20,7 @@ func testHTTP() {
 		log.Println("ReadAll", err)
 		return
 	}
-
-	log.Println(string(result))
+	log.Print(string(result))
 }
 
 func main() {
