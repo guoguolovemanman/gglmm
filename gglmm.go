@@ -10,9 +10,9 @@ import (
 
 var basePath string = ""
 var usePanicResponse = true
-var panicResponseMiddleware = PanicResponse()
+var middlewarePanicResponse = MiddlewarePanicResponse()
 var useTimeLogger = false
-var timeLoggerMiddleware = TimeLogger()
+var middlewareTimeLogger = MiddlewareTimeLogger()
 
 // BasePath 基础路径
 func BasePath(path string) {

@@ -25,7 +25,8 @@ func main() {
 	// 认证中间间
 	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
 
-	authMiddleware := auth.JWTAuthentication("example")
+	authMiddleware := auth.MiddlewareJWTAuth("example")
+	permissionMiddleware := gglmm.MiddlewarePermissionChecker(checkPermission)
 
 	gglmm.UseTimeLogger(true)
 
@@ -41,30 +42,30 @@ func main() {
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, readMiddleware, gglmm.ReadActions)
+		Action(authMiddleware, permissionMiddleware, readMiddleware, gglmm.ReadActions)
 
 	writeMiddleware := gglmm.Middleware{
 		Name: "WriteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, writeMiddleware, gglmm.WriteActions)
+		Action(authMiddleware, permissionMiddleware, writeMiddleware, gglmm.WriteActions)
 
 	deleteMiddleware := gglmm.Middleware{
 		Name: "DeleteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, deleteMiddleware, gglmm.DeleteActions)
+		Action(authMiddleware, permissionMiddleware, deleteMiddleware, gglmm.DeleteActions)
 
 	exampleMiddleware := gglmm.Middleware{
 		Name: "ExampleMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").
-		Middleware(authMiddleware, exampleMiddleware)
+		Middleware(authMiddleware, permissionMiddleware, exampleMiddleware)
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
-		Middleware(authMiddleware, exampleMiddleware)
+		Middleware(authMiddleware, permissionMiddleware, exampleMiddleware)
 
 	gglmm.HandleWS("/ws/once", OnceWSHandler)
 	gglmm.HandleWS("/ws/echo", EchoWSHandler)
@@ -72,6 +73,15 @@ func main() {
 	gglmm.RegisterRPC(NewExampleRPCService())
 
 	gglmm.ListenAndServe(":10000")
+}
+
+func checkPermission(r *http.Request) (bool, error) {
+	authInfo, err := auth.InfoFrom(r)
+	if err != nil {
+		return false, err
+	}
+	log.Println(r.Method, r.URL.Path, authInfo.Type, authInfo.ID)
+	return true, nil
 }
 
 func middlewareFunc(next http.Handler) http.Handler {

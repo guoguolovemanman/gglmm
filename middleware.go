@@ -40,8 +40,8 @@ func Panic(param interface{}) {
 	panic(errPanic)
 }
 
-// PanicResponse --
-func PanicResponse() Middleware {
+// MiddlewarePanicResponse --
+func MiddlewarePanicResponse() Middleware {
 	return Middleware{
 		Name: "PanicResponse",
 		Func: func(next http.Handler) http.Handler {
@@ -79,13 +79,13 @@ func PanicResponse() Middleware {
 	}
 }
 
-// CheckPermissionFunc --
-type CheckPermissionFunc func(r *http.Request) (bool, error)
+// PermissionCheckFunc --
+type PermissionCheckFunc func(r *http.Request) (bool, error)
 
-// CheckPermission --
-func CheckPermission(checkPermission CheckPermissionFunc) Middleware {
+// MiddlewarePermissionChecker --
+func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) Middleware {
 	return Middleware{
-		Name: "CheckPermission",
+		Name: "PermissionChecker",
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if result, err := checkPermission(r); !result || err != nil {
@@ -99,8 +99,8 @@ func CheckPermission(checkPermission CheckPermissionFunc) Middleware {
 	}
 }
 
-// TimeLogger --
-func TimeLogger() Middleware {
+// MiddlewareTimeLogger --
+func MiddlewareTimeLogger() Middleware {
 	return Middleware{
 		Name: "TimeLogger",
 		Func: func(next http.Handler) http.Handler {

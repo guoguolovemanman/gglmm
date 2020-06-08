@@ -125,16 +125,16 @@ func handleHTTP(router *mux.Router) {
 		for _, middlewareAcion := range config.middlewareActions {
 			middlewares := make([]string, 0)
 			if usePanicResponse {
-				subrouter.Use(mux.MiddlewareFunc(panicResponseMiddleware.Func))
-				middlewares = append(middlewares, panicResponseMiddleware.Name)
+				subrouter.Use(mux.MiddlewareFunc(middlewarePanicResponse.Func))
+				middlewares = append(middlewares, middlewarePanicResponse.Name)
 			}
 			for _, middleware := range middlewareAcion.middlewares {
 				subrouter.Use(mux.MiddlewareFunc(middleware.Func))
 				middlewares = append(middlewares, middleware.Name)
 			}
 			if useTimeLogger {
-				subrouter.Use(mux.MiddlewareFunc(timeLoggerMiddleware.Func))
-				middlewares = append(middlewares, timeLoggerMiddleware.Name)
+				subrouter.Use(mux.MiddlewareFunc(middlewareTimeLogger.Func))
+				middlewares = append(middlewares, middlewareTimeLogger.Name)
 			}
 			for _, action := range middlewareAcion.actions {
 				httpAction, err := config.httpHandler.Action(action)
@@ -158,16 +158,16 @@ func handleHTTPAction(router *mux.Router) {
 		subrouter := router.PathPrefix(basePath).Subrouter()
 		middlewares := make([]string, 0)
 		if usePanicResponse {
-			subrouter.Use(mux.MiddlewareFunc(panicResponseMiddleware.Func))
-			middlewares = append(middlewares, panicResponseMiddleware.Name)
+			subrouter.Use(mux.MiddlewareFunc(middlewarePanicResponse.Func))
+			middlewares = append(middlewares, middlewarePanicResponse.Name)
 		}
 		for _, middleware := range config.middlewares {
 			subrouter.Use(mux.MiddlewareFunc(middleware.Func))
 			middlewares = append(middlewares, middleware.Name)
 		}
 		if useTimeLogger {
-			subrouter.Use(mux.MiddlewareFunc(timeLoggerMiddleware.Func))
-			middlewares = append(middlewares, timeLoggerMiddleware.Name)
+			subrouter.Use(mux.MiddlewareFunc(middlewareTimeLogger.Func))
+			middlewares = append(middlewares, middlewareTimeLogger.Name)
 		}
 		handleHTTPFunc(subrouter, config.httpAction.path, config.httpAction.handlerFunc, config.httpAction.methods...)
 		logHTTP(middlewares, config.httpAction.methods, config.httpAction.path)
