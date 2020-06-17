@@ -93,6 +93,6 @@ type Pagination struct {
 
 // PageRequest 分页请求
 type PageRequest struct {
-	FilterRequest
+	*FilterRequest
 	Pagination
 }

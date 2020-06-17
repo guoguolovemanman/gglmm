@@ -9,34 +9,20 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// error
 var (
-	// ErrConfigFile --
-	ErrConfigFile = errors.New("配置文件错误")
-
-	// ErrRequest 请求错误
-	ErrRequest = errors.New("请求参数错误")
-
-	// ErrGormRecordNotFound --
-	ErrGormRecordNotFound = gorm.ErrRecordNotFound
-	// ErrFilter --
-	ErrFilter = errors.New("过滤参数错误")
-	// ErrFilterValueType --
-	ErrFilterValueType = errors.New("过滤值类型错误")
-	// ErrFilterValueSize --
-	ErrFilterValueSize = errors.New("过滤值大小错误")
-	// ErrFilterOperate --
-	ErrFilterOperate = errors.New("过滤操作错误")
-
-	// ErrAction --
-	ErrAction = errors.New("不支持Action")
-
-	// ErrModelType --
-	ErrModelType = errors.New("模型类型错误")
-	// ErrModelCanNotDeleted --
+	ErrConfigFile         = errors.New("配置文件错误")
+	ErrRequest            = errors.New("请求参数错误")
+	ErrFilter             = errors.New("过滤参数错误")
+	ErrFilterValueType    = errors.New("过滤值类型错误")
+	ErrFilterValueSize    = errors.New("过滤值大小错误")
+	ErrFilterOperate      = errors.New("过滤操作错误")
+	ErrAction             = errors.New("不支持Action")
+	ErrModelType          = errors.New("模型类型错误")
 	ErrModelCanNotDeleted = errors.New("模型不可删除")
+	ErrPathVar            = errors.New("路径参数错误")
 
-	// ErrPathVar --
-	ErrPathVar = errors.New("路径参数错误")
+	ErrGormRecordNotFound = gorm.ErrRecordNotFound
 )
 
 // ConfigInt8 --
@@ -51,15 +37,12 @@ type ConfigString struct {
 	Name  string `json:"name"`
 }
 
+// status
 var (
-	//StatusInvalid --
 	StatusInvalid = ConfigInt8{Value: -128, Name: "无效"}
-	// StatusFrozen --
-	StatusFrozen = ConfigInt8{Value: -127, Name: "冻结"}
-	// StatusValid --
-	StatusValid = ConfigInt8{Value: 1, Name: "有效"}
-	// Statuses --
-	Statuses = []ConfigInt8{StatusValid, StatusFrozen, StatusInvalid}
+	StatusFrozen  = ConfigInt8{Value: -127, Name: "冻结"}
+	StatusValid   = ConfigInt8{Value: 1, Name: "有效"}
+	Statuses      = []ConfigInt8{StatusValid, StatusFrozen, StatusInvalid}
 )
 
 // ConfigAPI --

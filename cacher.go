@@ -28,7 +28,7 @@ type Cacher interface {
 
 var cacher Cacher = nil
 
-const cacherKeyPrefix = "GGLMM:"
+const cacherKeyPrefix = "gglmm:cacher:"
 
 // RegisterCacher --
 func RegisterCacher(cacherInstance Cacher) {

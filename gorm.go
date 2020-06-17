@@ -47,7 +47,7 @@ func GormOpen(dialect string, url string, maxOpen int, maxIdle int, connMaxLifet
 	return db
 }
 
-func gormFilterRequest(db *gorm.DB, filterRequest FilterRequest) (*gorm.DB, error) {
+func gormFilterRequest(db *gorm.DB, filterRequest *FilterRequest) (*gorm.DB, error) {
 	db, err := gormFilters(db, filterRequest.Filters)
 	if err != nil {
 		return nil, err

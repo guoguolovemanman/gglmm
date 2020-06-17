@@ -60,16 +60,16 @@ func (gormDB *GormDB) preloadDB(preloads []string) *gorm.DB {
 
 // Get 单个查询
 func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
-	if idRequest, ok := request.(IDRequest); ok {
+	if idRequest, ok := request.(*IDRequest); ok {
 		return gormDB.getByID(model, idRequest)
 	} else if idRequest, ok := request.(*IDRequest); ok {
-		return gormDB.getByID(model, *idRequest)
-	} else if filterRequest, ok := request.(FilterRequest); ok {
+		return gormDB.getByID(model, idRequest)
+	} else if filterRequest, ok := request.(*FilterRequest); ok {
 		return gormDB.getByFilter(model, filterRequest)
 	} else if filterRequest, ok := request.(*FilterRequest); ok {
-		return gormDB.getByFilter(model, *filterRequest)
+		return gormDB.getByFilter(model, filterRequest)
 	} else if id, ok := request.(int64); ok {
-		idRequest := IDRequest{
+		idRequest := &IDRequest{
 			ID: id,
 		}
 		return gormDB.getByID(model, idRequest)
@@ -78,7 +78,7 @@ func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
 }
 
 // getByID 通过ID单个查询
-func (gormDB *GormDB) getByID(model interface{}, idRequest IDRequest) error {
+func (gormDB *GormDB) getByID(model interface{}, idRequest *IDRequest) error {
 	db := gormDB.preloadDB(idRequest.Preloads)
 	if err := db.First(model, idRequest.ID).Error; err != nil {
 		return err
@@ -90,7 +90,7 @@ func (gormDB *GormDB) getByID(model interface{}, idRequest IDRequest) error {
 }
 
 // getByFilter 根据条件单个查询
-func (gormDB *GormDB) getByFilter(model interface{}, filterRequest FilterRequest) error {
+func (gormDB *GormDB) getByFilter(model interface{}, filterRequest *FilterRequest) error {
 	db := gormDB.preloadDB(filterRequest.Preloads)
 	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
@@ -103,7 +103,7 @@ func (gormDB *GormDB) getByFilter(model interface{}, filterRequest FilterRequest
 }
 
 // List 根据条件列表查询
-func (gormDB *GormDB) List(slice interface{}, filterRequest FilterRequest) error {
+func (gormDB *GormDB) List(slice interface{}, filterRequest *FilterRequest) error {
 	db := gormDB.preloadDB(filterRequest.Preloads)
 	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
@@ -116,7 +116,7 @@ func (gormDB *GormDB) List(slice interface{}, filterRequest FilterRequest) error
 }
 
 // Page 根据条件分页查询
-func (gormDB *GormDB) Page(pageResponse *PageResponse, pageRequest PageRequest) error {
+func (gormDB *GormDB) Page(pageResponse *PageResponse, pageRequest *PageRequest) error {
 	db := gormDB.preloadDB(pageRequest.Preloads)
 	db, err := gormFilterRequest(db, pageRequest.FilterRequest)
 	if err != nil {

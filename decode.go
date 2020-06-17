@@ -15,11 +15,11 @@ func DecodeIDRequest(r *http.Request) (*IDRequest, error) {
 	if err != nil {
 		idQuery := r.FormValue("id")
 		if idQuery == "" {
-			return nil, err
+			return nil, ErrRequest
 		}
 		id, err = strconv.ParseInt(idQuery, 10, 64)
 		if err != nil {
-			return nil, err
+			return nil, ErrRequest
 		}
 	}
 	idRequest := &IDRequest{
@@ -37,28 +37,28 @@ func DecodeBody(r *http.Request, body interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(body); err != nil {
 		if err != io.EOF {
-			return err
+			return ErrRequest
 		}
 	}
 	return nil
 }
 
 // DecodeFilterRequest 解码过滤请求
-func DecodeFilterRequest(r *http.Request) (FilterRequest, error) {
-	filterRequest := FilterRequest{}
-	err := DecodeBody(r, &filterRequest)
+func DecodeFilterRequest(r *http.Request) (*FilterRequest, error) {
+	filterRequest := &FilterRequest{}
+	err := DecodeBody(r, filterRequest)
 	return filterRequest, err
 }
 
 // DecodePageRequest 解码分页请求
-func DecodePageRequest(r *http.Request) (PageRequest, error) {
-	pageRequest := PageRequest{
+func DecodePageRequest(r *http.Request) (*PageRequest, error) {
+	pageRequest := &PageRequest{
 		Pagination: Pagination{
 			PageSize:  DefaultPageSize,
 			PageIndex: FirstPageIndex,
 		},
 	}
-	err := DecodeBody(r, &pageRequest)
+	err := DecodeBody(r, pageRequest)
 	return pageRequest, err
 }
 
@@ -85,8 +85,8 @@ func DecodeModel(r *http.Request, modelType reflect.Type) (interface{}, error) {
 // DecodeModelSlicePtr 解码模型列表指针
 func DecodeModelSlicePtr(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	decoder := json.NewDecoder(r.Body)
-	list := reflect.New(reflect.SliceOf(modelType)).Interface()
-	if err := decoder.Decode(list); err != nil {
+	list := reflect.New(reflect.SliceOf(modelType))
+	if err := decoder.Decode(list.Interface()); err != nil {
 		return nil, err
 	}
 	return list, nil

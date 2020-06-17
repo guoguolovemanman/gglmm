@@ -9,8 +9,10 @@ import (
 )
 
 var basePath string = ""
+
 var usePanicResponse = true
 var middlewarePanicResponse = MiddlewarePanicResponse()
+
 var useTimeLogger = false
 var middlewareTimeLogger = MiddlewareTimeLogger()
 

@@ -57,7 +57,7 @@ func TestDecodeFilterRequest(t *testing.T) {
 
 func TestDecodePageRequest(t *testing.T) {
 	pageRequest := PageRequest{
-		FilterRequest: FilterRequest{
+		FilterRequest: &FilterRequest{
 			Filters: []Filter{
 				{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 			},

@@ -28,7 +28,7 @@ func (service *ExampleRPCService) Actions(cmd string, actions *[]*gglmm.RPCActio
 }
 
 // Get --
-func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *example.Example) error {
+func (service *ExampleRPCService) Get(idRequest *gglmm.IDRequest, example *example.Example) error {
 	err := service.gormDB.Get(example, idRequest)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (service *ExampleRPCService) Get(idRequest gglmm.IDRequest, example *exampl
 }
 
 // List --
-func (service *ExampleRPCService) List(filterRequest gglmm.FilterRequest, examples *[]example.Example) error {
+func (service *ExampleRPCService) List(filterRequest *gglmm.FilterRequest, examples *[]example.Example) error {
 	service.gormDB.List(examples, filterRequest)
 	return nil
 }
