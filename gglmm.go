@@ -10,8 +10,8 @@ import (
 
 var basePath string = ""
 
-var usePanicResponse = true
-var middlewarePanicResponse = MiddlewarePanicResponse()
+var usePanicResponser = true
+var middlewarePanicResponser = MiddlewarePanicResponser()
 
 var useTimeLogger = false
 var middlewareTimeLogger = MiddlewareTimeLogger()
@@ -21,9 +21,9 @@ func BasePath(path string) {
 	basePath = path
 }
 
-// UsePanicResponse --
-func UsePanicResponse(use bool) {
-	usePanicResponse = use
+// UsePanicResponser --
+func UsePanicResponser(use bool) {
+	usePanicResponser = use
 }
 
 // UseTimeLogger --

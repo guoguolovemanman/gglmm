@@ -40,8 +40,8 @@ func Panic(param interface{}) {
 	panic(errPanic)
 }
 
-// MiddlewarePanicResponse --
-func MiddlewarePanicResponse() Middleware {
+// MiddlewarePanicResponser --
+func MiddlewarePanicResponser() Middleware {
 	return Middleware{
 		Name: "PanicResponse",
 		Func: func(next http.Handler) http.Handler {

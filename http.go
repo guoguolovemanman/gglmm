@@ -124,9 +124,9 @@ func handleHTTP(router *mux.Router) {
 		subrouter := router.PathPrefix(basePath).Subrouter()
 		for _, middlewareAcion := range config.middlewareActions {
 			middlewares := make([]string, 0)
-			if usePanicResponse {
-				subrouter.Use(mux.MiddlewareFunc(middlewarePanicResponse.Func))
-				middlewares = append(middlewares, middlewarePanicResponse.Name)
+			if usePanicResponser {
+				subrouter.Use(mux.MiddlewareFunc(middlewarePanicResponser.Func))
+				middlewares = append(middlewares, middlewarePanicResponser.Name)
 			}
 			for _, middleware := range middlewareAcion.middlewares {
 				subrouter.Use(mux.MiddlewareFunc(middleware.Func))
@@ -157,9 +157,9 @@ func handleHTTPAction(router *mux.Router) {
 	for _, config := range httpActionConfigs {
 		subrouter := router.PathPrefix(basePath).Subrouter()
 		middlewares := make([]string, 0)
-		if usePanicResponse {
-			subrouter.Use(mux.MiddlewareFunc(middlewarePanicResponse.Func))
-			middlewares = append(middlewares, middlewarePanicResponse.Name)
+		if usePanicResponser {
+			subrouter.Use(mux.MiddlewareFunc(MiddlewarePanicResponser().Func))
+			middlewares = append(middlewares, middlewarePanicResponser.Name)
 		}
 		for _, middleware := range config.middlewares {
 			subrouter.Use(mux.MiddlewareFunc(middleware.Func))
