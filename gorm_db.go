@@ -60,12 +60,12 @@ func (gormDB *GormDB) preloadDB(preloads []string) *gorm.DB {
 
 // Get 单个查询
 func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
-	if idRequest, ok := request.(*IDRequest); ok {
-		return gormDB.getByID(model, idRequest)
+	if idRequest, ok := request.(IDRequest); ok {
+		return gormDB.getByID(model, &idRequest)
 	} else if idRequest, ok := request.(*IDRequest); ok {
 		return gormDB.getByID(model, idRequest)
-	} else if filterRequest, ok := request.(*FilterRequest); ok {
-		return gormDB.getByFilter(model, filterRequest)
+	} else if filterRequest, ok := request.(FilterRequest); ok {
+		return gormDB.getByFilter(model, &filterRequest)
 	} else if filterRequest, ok := request.(*FilterRequest); ok {
 		return gormDB.getByFilter(model, filterRequest)
 	} else if id, ok := request.(int64); ok {

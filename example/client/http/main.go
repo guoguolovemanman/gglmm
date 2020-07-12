@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	example "gglmm-example"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -61,8 +63,34 @@ func testHTTP() {
 	log.Println(token)
 
 	// 带上登录态请求
+
 	client := &http.Client{}
-	request, err := http.NewRequest("GET", "http://localhost:10000/api/example/1", nil)
+
+	// create
+	example := example.Example{
+		IntValue:    1,
+		StringValue: "1",
+		FloatValue:  1.1,
+	}
+	body, err := json.Marshal(example)
+	request, err := http.NewRequest("POST", "http://localhost:10000/api/example", bytes.NewReader(body))
+	request.Header.Add("Authorization", "Bearer "+token)
+	response, err = client.Do(request)
+	if err != nil {
+		log.Println("http", err)
+		return
+	}
+	defer response.Body.Close()
+
+	result, err = ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Println("ReadAll", err)
+		return
+	}
+	log.Print(string(result))
+
+	// get
+	request, err = http.NewRequest("GET", "http://localhost:10000/api/example/1", nil)
 	if err != nil {
 		log.Println("http", err)
 		return
