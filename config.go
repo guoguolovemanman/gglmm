@@ -11,33 +11,34 @@ import (
 
 // error
 var (
-	ErrConfigFile         = errors.New("配置文件错误")
-	ErrRequest            = errors.New("请求参数错误")
-	ErrFilter             = errors.New("过滤参数错误")
-	ErrFilterValueType    = errors.New("过滤值类型错误")
-	ErrFilterValueSize    = errors.New("过滤值大小错误")
-	ErrFilterOperate      = errors.New("过滤操作错误")
-	ErrAction             = errors.New("不支持Action")
-	ErrModelType          = errors.New("模型类型错误")
-	ErrModelCanNotDeleted = errors.New("模型不可删除")
-	ErrPathVar            = errors.New("路径参数错误")
+	ErrConfigFile        = errors.New("配置文件错误")
+	ErrRequest           = errors.New("请求参数错误")
+	ErrFilter            = errors.New("过滤参数错误")
+	ErrFilterValueType   = errors.New("过滤值类型错误")
+	ErrFilterValueSize   = errors.New("过滤值大小错误")
+	ErrFilterOperate     = errors.New("过滤操作错误")
+	ErrAction            = errors.New("不支持Action")
+	ErrModelType         = errors.New("模型类型错误")
+	ErrModelCanNotDelete = errors.New("模型不可删除")
+	ErrModelCanNotUpdate = errors.New("模型不可更新")
+	ErrPathVar           = errors.New("路径参数错误")
 
 	ErrGormRecordNotFound = gorm.ErrRecordNotFound
 )
 
-// ConfigInt8 --
+// ConfigInt8 整型配置
 type ConfigInt8 struct {
 	Value int8   `json:"value"`
 	Name  string `json:"name"`
 }
 
-// ConfigString --
+// ConfigString 字符配置
 type ConfigString struct {
 	Value string `json:"value"`
 	Name  string `json:"name"`
 }
 
-// status
+// Status
 var (
 	StatusInvalid = ConfigInt8{Value: -128, Name: "无效"}
 	StatusFrozen  = ConfigInt8{Value: -127, Name: "冻结"}

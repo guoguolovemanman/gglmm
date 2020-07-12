@@ -82,17 +82,17 @@ func DecodeModel(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	return model.Elem().Interface(), nil
 }
 
-// DecodeModelSlicePtr 解码模型列表指针
+// DecodeModelSlicePtr 解码模型切片指针
 func DecodeModelSlicePtr(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	decoder := json.NewDecoder(r.Body)
-	list := reflect.New(reflect.SliceOf(modelType))
-	if err := decoder.Decode(list.Interface()); err != nil {
+	list := reflect.New(reflect.SliceOf(modelType)).Interface()
+	if err := decoder.Decode(list); err != nil {
 		return nil, err
 	}
 	return list, nil
 }
 
-// DecodeModelSlice 解码模型列表
+// DecodeModelSlice 解码模型切片
 func DecodeModelSlice(r *http.Request, modelType reflect.Type) (interface{}, error) {
 	decoder := json.NewDecoder(r.Body)
 	list := reflect.New(reflect.SliceOf(modelType))

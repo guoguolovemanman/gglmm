@@ -14,7 +14,7 @@ var usePanicResponser = true
 var middlewarePanicResponser = MiddlewarePanicResponser()
 
 var useTimeLogger = false
-var middlewareTimeLogger = MiddlewareTimeLogger()
+var middlewareTimeLogger *Middleware = nil
 
 // BasePath 基础路径
 func BasePath(path string) {
@@ -27,8 +27,13 @@ func UsePanicResponser(use bool) {
 }
 
 // UseTimeLogger --
-func UseTimeLogger(use bool) {
+func UseTimeLogger(use bool, threshold int64) {
 	useTimeLogger = use
+	if useTimeLogger {
+		middlewareTimeLogger = MiddlewareTimeLogger(threshold)
+	} else {
+		middlewareTimeLogger = nil
+	}
 }
 
 // ListenAndServe 监听并服务

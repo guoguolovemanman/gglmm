@@ -30,7 +30,7 @@ var cacher Cacher = nil
 
 const cacherKeyPrefix = "gglmm:cache:"
 
-// RegisterCacher --
+// RegisterCacher 注册缓存
 func RegisterCacher(cacherInstance Cacher) {
 	cacherInstance.SetKeyPrefix(cacherKeyPrefix)
 	cacher = cacherInstance

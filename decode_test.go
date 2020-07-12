@@ -71,7 +71,7 @@ func TestDecodePageRequest(t *testing.T) {
 	}
 	query, _ := json.Marshal(pageRequest)
 	url := "/test"
-	request, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
+	request, err := http.NewRequest("POST", url, bytes.NewReader(query))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,8 +101,7 @@ type TestModel struct {
 func TestDecodeModel(t *testing.T) {
 	test := TestModel{Key: "key", Value: "value"}
 	query, _ := json.Marshal(test)
-	body := bytes.NewReader(query)
-	request, err := http.NewRequest("GET", "", body)
+	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,13 +115,29 @@ func TestDecodeModel(t *testing.T) {
 	}
 }
 
+func TestDecodeModelPtr(t *testing.T) {
+	test := TestModel{Key: "key", Value: "value"}
+	query, _ := json.Marshal(test)
+	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := DecodeModelPtr(request, reflect.TypeOf(test))
+	if err != nil {
+		t.Fatal(err)
+	}
+	check := result.(*TestModel)
+	if check.Key != test.Key || check.Value != test.Value {
+		t.Fatal(check)
+	}
+}
+
 func TestDecodeModelSlice(t *testing.T) {
 	tests := []TestModel{
 		{Key: "key", Value: "value"},
 	}
 	query, _ := json.Marshal(tests)
-	body := bytes.NewReader(query)
-	request, err := http.NewRequest("GET", "", body)
+	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,6 +147,25 @@ func TestDecodeModelSlice(t *testing.T) {
 	}
 	checks := result.([]TestModel)
 	if checks[0].Key != tests[0].Key || checks[0].Value != tests[0].Value {
+		t.Fatal(checks)
+	}
+}
+
+func TestDecodeModelSlicePtr(t *testing.T) {
+	tests := []TestModel{
+		{Key: "key", Value: "value"},
+	}
+	query, _ := json.Marshal(tests)
+	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := DecodeModelSlicePtr(request, reflect.TypeOf(TestModel{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	checks := result.(*[]TestModel)
+	if (*checks)[0].Key != tests[0].Key || (*checks)[0].Value != tests[0].Value {
 		t.Fatal(checks)
 	}
 }

@@ -26,12 +26,12 @@ func NewHTTPAction(path string, handlerFunc http.HandlerFunc, methods ...string)
 
 // HTTPActionConfig --
 type HTTPActionConfig struct {
-	middlewares []Middleware
+	middlewares []*Middleware
 	httpAction  *HTTPAction
 }
 
 // Middleware --
-func (config *HTTPActionConfig) Middleware(middlewares ...Middleware) {
+func (config *HTTPActionConfig) Middleware(middlewares ...*Middleware) {
 	config.middlewares = middlewares
 }
 

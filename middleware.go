@@ -41,9 +41,9 @@ func Panic(param interface{}) {
 }
 
 // MiddlewarePanicResponser --
-func MiddlewarePanicResponser() Middleware {
-	return Middleware{
-		Name: "PanicResponse",
+func MiddlewarePanicResponser() *Middleware {
+	return &Middleware{
+		Name: "PanicResponser",
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
@@ -69,7 +69,6 @@ func MiddlewarePanicResponser() Middleware {
 								AddData("url", r.RequestURI).
 								AddData("error", "未知错误").
 								JSON(w)
-							log.Println(recover)
 						}
 					}
 				}()
@@ -83,8 +82,8 @@ func MiddlewarePanicResponser() Middleware {
 type PermissionCheckFunc func(r *http.Request) (bool, error)
 
 // MiddlewarePermissionChecker --
-func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) Middleware {
-	return Middleware{
+func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) *Middleware {
+	return &Middleware{
 		Name: "PermissionChecker",
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -100,15 +99,20 @@ func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) Middleware
 }
 
 // MiddlewareTimeLogger --
-func MiddlewareTimeLogger() Middleware {
-	return Middleware{
+func MiddlewareTimeLogger(threshold int64) *Middleware {
+	return &Middleware{
 		Name: "TimeLogger",
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now().UnixNano()
+				defer func() {
+					end := time.Now().UnixNano()
+					elapsedTime := (end - start) / 1000 / 1000
+					if elapsedTime > threshold {
+						log.Printf("%-8dms %8s %s", elapsedTime, r.Method, r.RequestURI)
+					}
+				}()
 				next.ServeHTTP(w, r)
-				end := time.Now().UnixNano()
-				log.Printf("%8.3fms %8s %s", float64((end-start)/1000)/1000, r.Method, r.RequestURI)
 			})
 		},
 	}

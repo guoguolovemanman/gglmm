@@ -1,30 +1,23 @@
 package gglmm
 
+// Filter
 const (
-	// FilterOperateEqual 等于
-	FilterOperateEqual = "="
-	// FilterOperateNotEqual 等于
-	FilterOperateNotEqual = "<>"
-	// FilterOperateGreaterThan 大于
-	FilterOperateGreaterThan = ">"
-	// FilterOperateGreaterEqual 大于等于
+	FilterOperateEqual        = "="
+	FilterOperateNotEqual     = "<>"
+	FilterOperateGreaterThan  = ">"
 	FilterOperateGreaterEqual = ">="
-	// FilterOperateLessThan 小于
-	FilterOperateLessThan = "<"
-	// FilterOperateLessEqual 小于等于
-	FilterOperateLessEqual = "<="
-	// FilterOperateLike like模糊匹配
-	FilterOperateLike = "like"
-	// FilterOperateIn in查询
-	FilterOperateIn = "in"
-	// FilterOperateBetween between查询
-	FilterOperateBetween = "between"
-	// FilterSeparator 参数风隔符
-	FilterSeparator = "|"
-	// DefaultPageSize 默认每页大小
+	FilterOperateLessThan     = "<"
+	FilterOperateLessEqual    = "<="
+	FilterOperateLike         = "like"
+	FilterOperateIn           = "in"
+	FilterOperateBetween      = "between"
+	FilterSeparator           = "|"
+)
+
+// Page
+const (
 	DefaultPageSize = 15
-	// FirstPageIndex 第一页
-	FirstPageIndex = 1
+	FirstPageIndex  = 1
 )
 
 // Filter 过滤参数
