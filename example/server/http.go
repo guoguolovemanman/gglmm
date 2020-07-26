@@ -25,7 +25,7 @@ func (user ExampleUser) AuthInfo() *auth.Info {
 func LoginAction(jwtExpires int64, jwtSecret string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := ExampleUser{}
-		authToken, _, err := auth.GenerateToken(user, jwtExpires, jwtSecret)
+		authToken, _, err := auth.GenerateToken(user.AuthInfo(), jwtExpires, jwtSecret)
 		if err != nil {
 			gglmm.Panic(err)
 		}

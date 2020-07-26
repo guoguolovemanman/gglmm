@@ -42,7 +42,7 @@ type HTTPHandler interface {
 
 // MiddlewareAction --
 type MiddlewareAction struct {
-	middlewares []Middleware
+	middlewares []*Middleware
 	actions     []Action
 }
 
@@ -55,13 +55,13 @@ type HTTPHandlerConfig struct {
 
 // Action --
 func (config *HTTPHandlerConfig) Action(params ...interface{}) *HTTPHandlerConfig {
-	middlewares := make([]Middleware, 0)
+	middlewares := make([]*Middleware, 0)
 	actions := make([]Action, 0)
 	for _, param := range params {
 		if middleware, ok := param.(Middleware); ok {
+			middlewares = append(middlewares, &middleware)
+		} else if middleware, ok := param.(*Middleware); ok {
 			middlewares = append(middlewares, middleware)
-		} else if middlewareSlice, ok := param.([]Middleware); ok {
-			middlewares = append(middlewares, middlewareSlice...)
 		} else if action, ok := param.(Action); ok {
 			actions = append(actions, action)
 		} else if actionSlice, ok := param.([]Action); ok {

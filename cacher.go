@@ -1,5 +1,12 @@
 package gglmm
 
+import (
+	"errors"
+	"reflect"
+	"strconv"
+	"strings"
+)
+
 // Cacher 缓存接口
 type Cacher interface {
 	SetExpires(expires int)
@@ -39,4 +46,51 @@ func RegisterCacher(cacherInstance Cacher) {
 // DefaultCacher 默认缓存
 func DefaultCacher() Cacher {
 	return cacher
+}
+
+// CacherGetByIDRequest --
+func CacherGetByIDRequest(v reflect.Value, t reflect.Type, model interface{}, idRequest IDRequest) error {
+	if cacher != nil {
+		if SupportCache(v) {
+			cacheKey := t.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
+			if len(idRequest.Preloads) > 0 {
+				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
+			}
+			if err := cacher.GetObj(cacheKey, model); err != nil {
+				return err
+			}
+			return nil
+		}
+		return errors.New("模型不支持缓存")
+	}
+	return errors.New("请注册Cacher")
+}
+
+// CacherSetByIDRequest --
+func CacherSetByIDRequest(v reflect.Value, t reflect.Type, model interface{}, idRequest IDRequest) error {
+	if cacher != nil {
+		if SupportCache(v) {
+			cacheKey := t.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
+			if len(idRequest.Preloads) > 0 {
+				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
+			}
+			cacher.Set(cacheKey, model)
+			return nil
+		}
+		return errors.New("模型不支持缓存")
+	}
+	return errors.New("请注册Cacher")
+}
+
+// CacherDelPattern --
+func CacherDelPattern(v reflect.Value, t reflect.Type, id int64) error {
+	if cacher != nil {
+		if SupportCache(v) {
+			cacheKey := t.Name() + ":" + strconv.FormatInt(id, 10)
+			cacher.DelPattern(cacheKey)
+			return nil
+		}
+		return errors.New("模型不支持缓存")
+	}
+	return errors.New("请注册Cacher")
 }

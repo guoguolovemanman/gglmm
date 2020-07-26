@@ -27,9 +27,14 @@ func (info RPCAction) String() string {
 	return info.name + "(" + info.request + ", " + info.response + ")"
 }
 
+// RPCActionsResponse --
+type RPCActionsResponse struct {
+	Actions []*RPCAction
+}
+
 // RPCHandler --
 type RPCHandler interface {
-	Actions(cmd string, actions *[]*RPCAction) error
+	Actions(cmd string, actions *RPCActionsResponse) error
 }
 
 // RPCHandlerConfig --
@@ -71,10 +76,10 @@ func registerRPC() {
 		return
 	}
 	for _, config := range rpcHandlerConfigs {
-		rpcActions := []*RPCAction{}
-		config.rpcHandler.Actions("all", &rpcActions)
+		rpcActionsResponse := RPCActionsResponse{}
+		config.rpcHandler.Actions("all", &rpcActionsResponse)
 		rpcInfos := []string{}
-		for _, action := range rpcActions {
+		for _, action := range rpcActionsResponse.Actions {
 			rpcInfos = append(rpcInfos, action.String())
 		}
 		rpc.RegisterName(config.name, config.rpcHandler)

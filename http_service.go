@@ -4,8 +4,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"strconv"
-	"strings"
 )
 
 // Action --
@@ -166,32 +164,16 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
-			if len(idRequest.Preloads) > 0 {
-				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
-			}
-			if err := cacher.GetObj(cacheKey, model); err == nil {
-				OkResponse().
-					AddData(SingleKey(service.modelValue), model).
-					JSON(w)
-				return
-			}
-		}
+	if err := CacherGetByIDRequest(service.modelValue, service.modelType, model, *idRequest); err == nil {
+		OkResponse().
+			AddData(SingleKey(service.modelValue), model).
+			JSON(w)
+		return
 	}
 	if err = gormDB.Get(model, idRequest); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(idRequest.ID, 10)
-			if len(idRequest.Preloads) > 0 {
-				cacheKey = cacheKey + ":" + strings.Join(idRequest.Preloads, "-")
-			}
-			cacher.Set(cacheKey, model)
-		}
-	}
+	CacherSetByIDRequest(service.modelValue, service.modelType, model, *idRequest)
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
@@ -292,12 +274,7 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	if err = gormDB.Update(model, id); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			cacher.DelPattern(cacheKey)
-		}
-	}
+	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
@@ -326,12 +303,7 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 	if err = gormDB.UpdateFields(model, fields); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			cacher.DelPattern(cacheKey)
-		}
-	}
+	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
@@ -355,12 +327,7 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	if err = gormDB.Remove(model, id); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			cacher.DelPattern(cacheKey)
-		}
-	}
+	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
@@ -376,12 +343,7 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 	if err = gormDB.Restore(model, id); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			cacher.DelPattern(cacheKey)
-		}
-	}
+	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
 		AddData(SingleKey(service.modelValue), model).
 		JSON(w)
@@ -405,11 +367,6 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	if err = gormDB.Destroy(model, id); err != nil {
 		Panic(err)
 	}
-	if cacher != nil {
-		if SupportCache(service.modelValue) {
-			cacheKey := service.modelType.Name() + ":" + strconv.FormatInt(id, 10)
-			cacher.DelPattern(cacheKey)
-		}
-	}
+	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().JSON(w)
 }

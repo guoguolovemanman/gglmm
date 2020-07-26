@@ -88,6 +88,7 @@ github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d/go.mod h1:c3At6R
 github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
+github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/weihongguo/gglmm v0.0.0-20200517065742-d1a8279a8c2a h1:SfokupWwkTIcN4aGUbzWVJOA8A2RZ7Mzz5B561fOxQ4=
@@ -96,6 +97,7 @@ github.com/weihongguo/gglmm-auth v0.0.0-20200527134404-e0cbabd366f6/go.mod h1:D5
 github.com/weihongguo/gglmm-redis v0.0.0-20200517083516-9e3764c92628 h1:CQ5GCShxg5FyZLG/6j9ElivTjX6UeGUESVnhy7VBbWA=
 github.com/weihongguo/gglmm-redis v0.0.0-20200517083516-9e3764c92628/go.mod h1:LeaMQAB71Vk3cVbtjw9xFzSTsfQN5PCzMOGEfYNrOhk=
 github.com/weihongguo/gglmm-weixin v0.0.0-20200518133046-485e3ba0daa3/go.mod h1:pmGkd9Zdn3OqtkUdb7NXXv3oiNGWkDSrNFHTAF8TF9Y=
+github.com/weihongguo/gglmm-weixin v0.0.0-20200527134538-2891bdb031a2 h1:dzQEwr4CfsXRo0DGy3TRGe3nMzUQ8YvUbK88kqhmP9A=
 github.com/weihongguo/gglmm-weixin v0.0.0-20200527134538-2891bdb031a2/go.mod h1:M00aFwFWJLiPZKEljvrgz4n+pHW68QmnM9lfIlQNLcg=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=

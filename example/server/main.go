@@ -25,10 +25,10 @@ func main() {
 	// 认证中间间
 	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
 
-	authMiddleware := auth.MiddlewareJWTAuth("example")
+	jwtAuthExample := auth.MiddlewareJWTAuthChecker("example")
 	permissionMiddleware := gglmm.MiddlewarePermissionChecker(checkPermission)
 
-	gglmm.UseTimeLogger(true)
+	gglmm.UseTimeLogger(true, 300)
 
 	gglmm.HandleHTTPAction("/login", LoginAction(3600, "example"), "GET", "POST")
 
@@ -42,30 +42,30 @@ func main() {
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, permissionMiddleware, readMiddleware, gglmm.ReadActions)
+		Action(jwtAuthExample, permissionMiddleware, readMiddleware, gglmm.ReadActions)
 
 	writeMiddleware := gglmm.Middleware{
 		Name: "WriteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, permissionMiddleware, writeMiddleware, gglmm.WriteActions)
+		Action(jwtAuthExample, permissionMiddleware, writeMiddleware, gglmm.WriteActions)
 
 	deleteMiddleware := gglmm.Middleware{
 		Name: "DeleteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(authMiddleware, permissionMiddleware, deleteMiddleware, gglmm.DeleteActions)
+		Action(jwtAuthExample, permissionMiddleware, deleteMiddleware, gglmm.DeleteActions)
 
-	exampleMiddleware := gglmm.Middleware{
+	exampleMiddleware := &gglmm.Middleware{
 		Name: "ExampleMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").
-		Middleware(authMiddleware, permissionMiddleware, exampleMiddleware)
+		Middleware(jwtAuthExample, permissionMiddleware, exampleMiddleware)
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
-		Middleware(authMiddleware, permissionMiddleware, exampleMiddleware)
+		Middleware(jwtAuthExample, permissionMiddleware, exampleMiddleware)
 
 	gglmm.HandleWS("/ws/once", OnceWSHandler)
 	gglmm.HandleWS("/ws/echo", EchoWSHandler)

@@ -1,6 +1,7 @@
 package gglmm
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"runtime"
@@ -101,7 +102,7 @@ func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) *Middlewar
 // MiddlewareTimeLogger --
 func MiddlewareTimeLogger(threshold int64) *Middleware {
 	return &Middleware{
-		Name: "TimeLogger",
+		Name: fmt.Sprintf("%s[%dms]", "TimeLogger", threshold),
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				start := time.Now().UnixNano()
