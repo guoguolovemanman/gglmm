@@ -7,7 +7,6 @@ import (
 
 	"github.com/weihongguo/gglmm"
 	auth "github.com/weihongguo/gglmm-auth"
-	redis "github.com/weihongguo/gglmm-redis"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -15,10 +14,6 @@ import (
 func main() {
 	gglmm.RegisterGormDB("mysql", "gglmm_example:123456@(127.0.0.1:3306)/gglmm_example?charset=utf8mb4&parseTime=true&loc=UTC", 10, 5, 600)
 	defer gglmm.CloseGormDB()
-
-	redisCacher := redis.NewCacher("tcp", "127.0.0.1:6379", 5, 10, 3, 30)
-	defer redisCacher.Close()
-	gglmm.RegisterCacher(redisCacher)
 
 	gglmm.BasePath("/api")
 
@@ -76,11 +71,11 @@ func main() {
 }
 
 func checkPermission(r *http.Request) (bool, error) {
-	authInfo, err := auth.InfoFrom(r)
+	authSubject, err := auth.SubjectFrom(r)
 	if err != nil {
 		return false, err
 	}
-	log.Println(r.Method, r.URL.Path, authInfo.Type, authInfo.ID)
+	log.Println(r.Method, r.URL.Path, authSubject.Type, authSubject.ID)
 	return true, nil
 }
 
@@ -103,11 +98,11 @@ func beforeCreate(model interface{}) (interface{}, error) {
 	return example, nil
 }
 
-func beforeUpdate(model interface{}, id int64) (interface{}, int64, error) {
+func beforeUpdate(model interface{}) (interface{}, error) {
 	example, ok := model.(*example.Example)
 	if !ok {
-		return nil, 0, gglmm.ErrModelType
+		return nil, gglmm.ErrModelType
 	}
 	example.StringValue = "string"
-	return example, id, nil
+	return example, nil
 }

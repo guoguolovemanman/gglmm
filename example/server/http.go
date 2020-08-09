@@ -13,9 +13,9 @@ import (
 type ExampleUser struct {
 }
 
-// AuthInfo --
-func (user ExampleUser) AuthInfo() *auth.Info {
-	return &auth.Info{
+// Login --
+func (user ExampleUser) Login() *auth.Subject {
+	return &auth.Subject{
 		Type: "example",
 		ID:   0,
 	}
@@ -25,7 +25,7 @@ func (user ExampleUser) AuthInfo() *auth.Info {
 func LoginAction(jwtExpires int64, jwtSecret string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := ExampleUser{}
-		authToken, _, err := auth.GenerateToken(user.AuthInfo(), jwtExpires, jwtSecret)
+		authToken, _, err := auth.GenerateToken(user.Login(), jwtExpires, jwtSecret)
 		if err != nil {
 			gglmm.Panic(err)
 		}
@@ -43,7 +43,7 @@ type ExampleService struct {
 // NewExampleService --
 func NewExampleService() *ExampleService {
 	return &ExampleService{
-		HTTPService: gglmm.NewHTTPService(example.Example{}),
+		HTTPService: gglmm.NewHTTPService(example.Example{}, [...]string{"example", "examples"}),
 	}
 }
 

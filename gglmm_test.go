@@ -29,11 +29,11 @@ func TestGGLMM(t *testing.T) {
 	router.ServeHTTP(testResponse, testRequest)
 
 	response := OkResponse()
-	if err := json.Unmarshal(testResponse.Body.Bytes(), response); err != nil {
+	if err := json.Unmarshal(testResponse.Body.Bytes(), &response); err != nil {
 		t.Fatal(err)
 	}
-	if response.Code != http.StatusOK {
-		t.Fatal(response.Code)
+	if response.StatusCode != http.StatusOK {
+		t.Fatal(response.StatusCode)
 	}
 	success := response.Data["success"].(string)
 	if success != "success" {

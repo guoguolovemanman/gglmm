@@ -1,5 +1,12 @@
 package gglmm
 
+import "errors"
+
+// Err --
+var (
+	ErrRequest = errors.New("请求参数错误")
+)
+
 // Filter
 const (
 	FilterOperateEqual        = "="
@@ -14,6 +21,13 @@ const (
 	FilterSeparator           = "|"
 )
 
+// Filter
+var (
+	FilterFieldDeleted = "deleted"
+	FilterValueAll     = ConfigString{Value: "all", Name: "所有"}
+	FilterValueDeleted = ConfigString{Value: "deleted", Name: "已删除"}
+)
+
 // Page
 const (
 	DefaultPageSize = 15
@@ -26,16 +40,6 @@ type Filter struct {
 	Operate string      `json:"operate"`
 	Value   interface{} `json:"value"`
 }
-
-// FilterFieldDeleted --
-const FilterFieldDeleted = "deleted"
-
-var (
-	// FilterValueAll --
-	FilterValueAll = ConfigString{Value: "all", Name: "所有"}
-	// FilterValueDeleted --
-	FilterValueDeleted = ConfigString{Value: "deleted", Name: "已删除"}
-)
 
 // Check --
 func (filter Filter) Check() bool {
@@ -53,15 +57,15 @@ func (filter Filter) Check() bool {
 
 // IDRequest --
 type IDRequest struct {
-	ID       int64    `json:"id"`
+	ID       uint64   `json:"id"`
 	Preloads []string `json:"preloads"`
 }
 
 // FilterRequest 分页请求
 type FilterRequest struct {
 	Filters  []Filter `json:"filters"`
-	Order    string   `json:"order"`
 	Preloads []string `json:"preloads"`
+	Order    string   `json:"order"`
 }
 
 // AddFilter 添加过滤条件

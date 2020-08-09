@@ -143,7 +143,7 @@ func handleHTTP(router *mux.Router) {
 				} else if httpAction.handlerFunc != nil {
 					path := config.path + httpAction.path
 					handleHTTPFunc(subrouter, path, httpAction.handlerFunc, httpAction.methods...)
-					logHTTP(middlewares, httpAction.methods, path)
+					logHTTP(httpAction.methods, path, middlewares)
 				}
 			}
 		}
@@ -170,7 +170,7 @@ func handleHTTPAction(router *mux.Router) {
 			middlewares = append(middlewares, middlewareTimeLogger.Name)
 		}
 		handleHTTPFunc(subrouter, config.httpAction.path, config.httpAction.handlerFunc, config.httpAction.methods...)
-		logHTTP(middlewares, config.httpAction.methods, config.httpAction.path)
+		logHTTP(config.httpAction.methods, config.httpAction.path, middlewares)
 	}
 }
 
@@ -178,7 +178,7 @@ func handleHTTPFunc(subrouter *mux.Router, path string, handlerFunc http.Handler
 	subrouter.HandleFunc(path, handlerFunc).Methods(mathods...)
 }
 
-func logHTTP(middlewares []string, methods []string, path string) {
+func logHTTP(methods []string, path string, middlewares []string) {
 	if len(middlewares) > 0 {
 		log.Printf("[http] [%-16s] %-60s %-80s\n", strings.Join(methods, ", "), basePath+path, strings.Join(middlewares, ", "))
 	} else {

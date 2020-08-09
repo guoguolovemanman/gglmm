@@ -11,11 +11,8 @@ import (
 // error
 var (
 	ErrParams                = errors.New("参数错误")
-	ErrRecordNotFound        = errors.New("记录不存在")
-	ErrStoreFail             = errors.New("保存失败")
 	ErrStoreFailNotNewRecord = errors.New("保存失败，不是新记录")
-	ErrUpdateFail            = errors.New("更新失败")
-	ErrUpdateFailID          = errors.New("更新失败，ID错误")
+	ErrUpdateID              = errors.New("更新失败")
 )
 
 // GormDB 服务
@@ -37,14 +34,6 @@ func NewGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLife
 	}
 }
 
-// ID --
-func (gormDB *GormDB) ID(model interface{}) int64 {
-	if entity, ok := model.(Entity); ok {
-		return entity.UniqueID()
-	}
-	return 0
-}
-
 func (gormDB *GormDB) preloadsDB(preloads []string) *gorm.DB {
 	db := gormDB.DB
 	for _, preload := range preloads {
@@ -53,39 +42,50 @@ func (gormDB *GormDB) preloadsDB(preloads []string) *gorm.DB {
 	return db
 }
 
-// Get 单个查询
-func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
-	if idRequest, ok := request.(IDRequest); ok {
-		return gormDB.getByID(model, &idRequest)
-	} else if idRequest, ok := request.(*IDRequest); ok {
-		return gormDB.getByID(model, idRequest)
-	} else if filterRequest, ok := request.(FilterRequest); ok {
-		return gormDB.getByFilter(model, &filterRequest)
-	} else if filterRequest, ok := request.(*FilterRequest); ok {
-		return gormDB.getByFilter(model, filterRequest)
-	} else if id, ok := request.(int64); ok {
-		idRequest := &IDRequest{
-			ID: id,
+func (gormDB *GormDB) primaryKeyValue(model interface{}) uint64 {
+	scope := gormDB.NewScope(model)
+	key := scope.PrimaryKey()
+	if key == "id" {
+		value := scope.PrimaryKeyValue()
+		if value, ok := value.(uint64); ok {
+			return value
 		}
-		return gormDB.getByID(model, idRequest)
 	}
-	return ErrParams
+	return 0
 }
 
-// getByID 通过ID单个查询
-func (gormDB *GormDB) getByID(model interface{}, idRequest *IDRequest) error {
+// Get 单个查询
+func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
+	switch request := request.(type) {
+	case uint64:
+		idRequest := &IDRequest{
+			ID: request,
+		}
+		return gormDB.GetByID(model, idRequest)
+	case IDRequest:
+		return gormDB.GetByID(model, &request)
+	case *IDRequest:
+		return gormDB.GetByID(model, request)
+	case FilterRequest:
+		return gormDB.FirstByFilter(model, &request)
+	case *FilterRequest:
+		return gormDB.FirstByFilter(model, request)
+	default:
+		return ErrParams
+	}
+}
+
+// GetByID 通过ID单个查询
+func (gormDB *GormDB) GetByID(model interface{}, idRequest *IDRequest) error {
 	db := gormDB.preloadsDB(idRequest.Preloads)
 	if err := db.First(model, idRequest.ID).Error; err != nil {
 		return err
 	}
-	if db.NewRecord(model) {
-		return ErrRecordNotFound
-	}
 	return nil
 }
 
-// getByFilter 根据条件单个查询
-func (gormDB *GormDB) getByFilter(model interface{}, filterRequest *FilterRequest) error {
+// FirstByFilter 根据条件单个查询
+func (gormDB *GormDB) FirstByFilter(model interface{}, filterRequest *FilterRequest) error {
 	db := gormDB.preloadsDB(filterRequest.Preloads)
 	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
@@ -98,29 +98,37 @@ func (gormDB *GormDB) getByFilter(model interface{}, filterRequest *FilterReques
 }
 
 // List 根据条件列表查询
-func (gormDB *GormDB) List(slice interface{}, filterRequest *FilterRequest) error {
+func (gormDB *GormDB) List(models interface{}, filterRequest *FilterRequest) error {
 	db := gormDB.preloadsDB(filterRequest.Preloads)
 	db, err := gormFilterRequest(db, filterRequest)
 	if err != nil {
 		return err
 	}
-	if err = db.Find(slice).Error; err != nil {
+	if err = db.Find(models).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // Page 根据条件分页查询
-func (gormDB *GormDB) Page(pageResponse *PageResponse, pageRequest *PageRequest) error {
-	db := gormDB.preloadsDB(pageRequest.Preloads)
-	db, err := gormFilterRequest(db, pageRequest.FilterRequest)
+func (gormDB *GormDB) Page(response *PageResponse, request *PageRequest) error {
+	db := gormDB.preloadsDB(request.Preloads)
+	db, err := gormFilterRequest(db, request.FilterRequest)
 	if err != nil {
 		return err
 	}
-	pagination := pageRequest.Pagination
-	pageResponse.Pagination = pagination
-	offset := (pagination.PageIndex - 1) * pagination.PageSize
-	if err = db.Model(pageResponse.List).Count(&pageResponse.Pagination.Total).Limit(pageResponse.Pagination.PageSize).Offset(offset).Find(pageResponse.List).Error; err != nil {
+	pageIndex := request.Pagination.PageIndex
+	if pageIndex == 0 {
+		pageIndex = FirstPageIndex
+	}
+	pageSize := request.Pagination.PageSize
+	if pageSize == 0 {
+		pageSize = DefaultPageSize
+	}
+	response.Pagination.PageIndex = pageIndex
+	response.Pagination.PageSize = pageSize
+	offset := (pageIndex - 1) * pageSize
+	if err = db.Model(response.List).Count(&response.Pagination.Total).Limit(response.Pagination.PageSize).Offset(offset).Find(response.List).Error; err != nil {
 		return err
 	}
 	return nil
@@ -134,17 +142,13 @@ func (gormDB *GormDB) Store(model interface{}) error {
 	if err := gormDB.Create(model).Error; err != nil {
 		return err
 	}
-	if gormDB.NewRecord(model) {
-		return ErrStoreFail
-	}
 	return nil
 }
 
 // Update 更新整体
-func (gormDB *GormDB) Update(model interface{}, id int64) error {
-	modelID := gormDB.ID(model)
-	if modelID != id {
-		return ErrParams
+func (gormDB *GormDB) Update(model interface{}, id uint64) error {
+	if id != gormDB.primaryKeyValue(model) {
+		return ErrUpdateID
 	}
 	if err := gormDB.Save(model).Error; err != nil {
 		return err
@@ -156,19 +160,21 @@ func (gormDB *GormDB) Update(model interface{}, id int64) error {
 }
 
 // UpdateFields 更新多个属性
-func (gormDB *GormDB) UpdateFields(model interface{}, fields interface{}) error {
-	modelID := gormDB.ID(model)
+func (gormDB *GormDB) UpdateFields(model interface{}, id uint64, fields interface{}) error {
+	if id != gormDB.primaryKeyValue(model) {
+		return ErrUpdateID
+	}
 	if err := gormDB.Model(model).Updates(fields).Error; err != nil {
 		return err
 	}
-	if err := gormDB.First(model, modelID).Error; err != nil {
+	if err := gormDB.First(model, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // Remove 软删除
-func (gormDB *GormDB) Remove(model interface{}, id int64) error {
+func (gormDB *GormDB) Remove(model interface{}, id uint64) error {
 	if err := gormDB.Delete(model, "id = ?", id).Error; err != nil {
 		return err
 	}
@@ -179,7 +185,7 @@ func (gormDB *GormDB) Remove(model interface{}, id int64) error {
 }
 
 // Restore 恢复
-func (gormDB *GormDB) Restore(model interface{}, id int64) error {
+func (gormDB *GormDB) Restore(model interface{}, id uint64) error {
 	if err := gormDB.Unscoped().Model(model).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
 		return err
 	}
@@ -190,7 +196,7 @@ func (gormDB *GormDB) Restore(model interface{}, id int64) error {
 }
 
 // Destroy 直接删除
-func (gormDB *GormDB) Destroy(model interface{}, id int64) error {
+func (gormDB *GormDB) Destroy(model interface{}, id uint64) error {
 	return gormDB.Unscoped().Delete(model, "id = ?", id).Error
 }
 

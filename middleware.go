@@ -51,22 +51,22 @@ func MiddlewarePanicResponser() *Middleware {
 					if recover := recover(); recover != nil {
 						switch recover := recover.(type) {
 						case string:
-							ErrorResponse(recover).
+							ErrorResponse(ResponseFailCode, recover).
 								AddData("url", r.RequestURI).
 								JSON(w)
 						case ErrPanic:
-							ErrorResponse(recover.message).
+							ErrorResponse(ResponseFailCode, recover.message).
 								AddData("url", r.RequestURI).
 								AddData("file", recover.file).
 								AddData("line", recover.line).
 								JSON(w)
 						case error:
-							ErrorResponse("服务忙，请稍后再试").
+							ErrorResponse(ResponseFailCode, "服务忙，请稍后再试").
 								AddData("url", r.RequestURI).
 								AddData("error", recover.Error()).
 								JSON(w)
 						default:
-							ErrorResponse("服务忙，请稍后再试").
+							ErrorResponse(ResponseFailCode, "服务忙，请稍后再试").
 								AddData("url", r.RequestURI).
 								AddData("error", "未知错误").
 								JSON(w)

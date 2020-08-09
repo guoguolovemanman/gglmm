@@ -57,9 +57,9 @@ func ListenAndServe(address string) {
 }
 
 // ListenAndServeConfig 监听并服务
-func ListenAndServeConfig(config ConfigAPI) {
+func ListenAndServeConfig(config ConfigHTTP) {
 	if !config.Check() {
-		log.Fatal("ConfigAPI invalid")
+		log.Fatal("ConfigHTTP invalid")
 	}
 	ListenAndServe(config.Address)
 }

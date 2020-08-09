@@ -1,9 +1,17 @@
 package gglmm
 
 import (
-	"log"
+	"errors"
 	"net/http"
 	"reflect"
+)
+
+// Err
+var (
+	ErrAction            = errors.New("不支持Action")
+	ErrModelType         = errors.New("模型类型错误")
+	ErrModelCanNotDelete = errors.New("模型不可删除")
+	ErrModelCanNotUpdate = errors.New("模型不可更新")
 )
 
 // Action --
@@ -52,18 +60,20 @@ var (
 type FilterFunc func(filters []Filter, r *http.Request) []Filter
 
 // BeforeCreateFunc 保存前调用
-type BeforeCreateFunc func(model interface{}) (interface{}, error)
+type BeforeCreateFunc func(interface{}) (interface{}, error)
 
 // BeforeUpdateFunc 更新前调用
-type BeforeUpdateFunc func(model interface{}, id int64) (interface{}, int64, error)
+type BeforeUpdateFunc func(interface{}) (interface{}, error)
 
 // BeforeDeleteFunc 删除前调用
-type BeforeDeleteFunc func(model interface{}) (interface{}, error)
+type BeforeDeleteFunc func(interface{}) (interface{}, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
-	modelType        reflect.Type
-	modelValue       reflect.Value
+	GormDB    *GormDB
+	modelType reflect.Type
+	keys      [2]string
+
 	filterFunc       FilterFunc
 	beforeCreateFunc BeforeCreateFunc
 	beforeUpdateFunc BeforeUpdateFunc
@@ -71,13 +81,11 @@ type HTTPService struct {
 }
 
 // NewHTTPService 新建HTTP服务
-func NewHTTPService(model interface{}) *HTTPService {
-	if gormDB == nil {
-		log.Fatal(ErrGormDBNotRegister)
-	}
+func NewHTTPService(model interface{}, keys [2]string) *HTTPService {
 	return &HTTPService{
-		modelType:  reflect.TypeOf(model),
-		modelValue: reflect.ValueOf(model),
+		GormDB:    DefaultGormDB(),
+		modelType: reflect.TypeOf(model),
+		keys:      keys,
 	}
 }
 
@@ -159,86 +167,80 @@ func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 
 // GetByID 单个
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
-	idRequest, err := DecodeIDRequest(r)
-	if err != nil {
+	idRequest := &IDRequest{}
+	if err := DecodeIDRequest(r, idRequest); err != nil {
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := CacherGetByIDRequest(service.modelValue, service.modelType, model, *idRequest); err == nil {
-		OkResponse().
-			AddData(SingleKey(service.modelValue), model).
-			JSON(w)
-		return
-	}
-	if err = gormDB.Get(model, idRequest); err != nil {
+	if err := service.GormDB.GetByID(model, idRequest); err != nil {
 		Panic(err)
 	}
-	CacherSetByIDRequest(service.modelValue, service.modelType, model, *idRequest)
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
 // First 单个
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
-	filterRequest, err := DecodeFilterRequest(r)
-	if err != nil {
+	filterRequest := &FilterRequest{}
+	if err := DecodeBody(r, filterRequest); err != nil {
 		Panic(err)
 	}
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormDB.Get(model, filterRequest); err != nil {
+	if err := service.GormDB.Get(model, filterRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
 // List 列表
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
-	filterRequest, err := DecodeFilterRequest(r)
-	if err != nil {
+	filterRequest := &FilterRequest{}
+	if err := DecodeBody(r, filterRequest); err != nil {
 		Panic(err)
 	}
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
-	list := reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err = gormDB.List(list, filterRequest); err != nil {
+	models := reflect.New(reflect.SliceOf(service.modelType)).Interface()
+	if err := service.GormDB.List(models, filterRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
-		AddData(MultiKey(service.modelValue), list).
+		AddData(service.keys[1], models).
 		JSON(w)
 }
 
 // Page 分页
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
-	pageRequest, err := DecodePageRequest(r)
-	if err != nil {
+	pageRequest := &PageRequest{}
+	if err := DecodeBody(r, pageRequest); err != nil {
 		Panic(err)
 	}
 	if service.filterFunc != nil {
 		pageRequest.Filters = service.filterFunc(pageRequest.Filters, r)
 	}
-	pageResponse := PageResponse{}
+	pageResponse := &PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err = gormDB.Page(&pageResponse, pageRequest); err != nil {
+	if err := service.GormDB.Page(pageResponse, pageRequest); err != nil {
 		Panic(err)
 	}
 	OkResponse().
-		AddData(MultiKey(service.modelValue), pageResponse.List).
+		AddData(service.keys[1], pageResponse.List).
 		AddData("pagination", pageResponse.Pagination).
 		JSON(w)
 }
 
 // Store 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
-	model, err := DecodeModelPtr(r, service.modelType)
-	if err != nil {
+	var err error
+	model := reflect.New(service.modelType).Interface()
+	if err = DecodeBody(r, model); err != nil {
 		Panic(err)
 	}
 	if service.beforeCreateFunc != nil {
@@ -247,11 +249,11 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 			Panic(err)
 		}
 	}
-	if err = gormDB.Store(model); err != nil {
+	if err = service.GormDB.Store(model); err != nil {
 		Panic(err)
 	}
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
@@ -261,22 +263,21 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Panic(err)
 	}
-	model, err := DecodeModelPtr(r, service.modelType)
-	if err != nil {
+	model := reflect.New(service.modelType).Interface()
+	if err = DecodeBody(r, model); err != nil {
 		Panic(err)
 	}
 	if service.beforeUpdateFunc != nil {
-		model, id, err = service.beforeUpdateFunc(model, id)
+		model, err = service.beforeUpdateFunc(model)
 		if err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormDB.Update(model, id); err != nil {
+	if err = service.GormDB.Update(model, id); err != nil {
 		Panic(err)
 	}
-	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
@@ -287,25 +288,24 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := gormDB.Get(model, id); err != nil {
+	if err := service.GormDB.Get(model, id); err != nil {
 		Panic(err)
 	}
-	fields, err := DecodeModelPtr(r, service.modelType)
-	if err != nil {
+	fields := reflect.New(service.modelType).Interface()
+	if err := DecodeBody(r, fields); err != nil {
 		Panic(err)
 	}
 	if service.beforeUpdateFunc != nil {
-		fields, id, err = service.beforeUpdateFunc(fields, id)
+		fields, err = service.beforeUpdateFunc(fields)
 		if err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormDB.UpdateFields(model, fields); err != nil {
+	if err = service.GormDB.UpdateFields(model, id, fields); err != nil {
 		Panic(err)
 	}
-	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
@@ -317,19 +317,18 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := gormDB.Get(model, id); err != nil {
+		if err := service.GormDB.Get(model, id); err != nil {
 			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormDB.Remove(model, id); err != nil {
+	if err = service.GormDB.Remove(model, id); err != nil {
 		Panic(err)
 	}
-	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
@@ -340,12 +339,11 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 		Panic(err)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = gormDB.Restore(model, id); err != nil {
+	if err = service.GormDB.Restore(model, id); err != nil {
 		Panic(err)
 	}
-	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().
-		AddData(SingleKey(service.modelValue), model).
+		AddData(service.keys[0], model).
 		JSON(w)
 }
 
@@ -357,16 +355,15 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := gormDB.Get(model, id); err != nil {
+		if err := service.GormDB.Get(model, id); err != nil {
 			Panic(err)
 		}
 		if _, err := service.beforeDeleteFunc(model); err != nil {
 			Panic(err)
 		}
 	}
-	if err = gormDB.Destroy(model, id); err != nil {
+	if err = service.GormDB.Destroy(model, id); err != nil {
 		Panic(err)
 	}
-	CacherDelPattern(service.modelValue, service.modelType, id)
 	OkResponse().JSON(w)
 }

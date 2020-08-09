@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"reflect"
 	"testing"
 )
 
@@ -14,18 +13,18 @@ func TestDecodeIDRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resultRequest, err := DecodeIDRequest(request)
-	if err != nil {
+	resultIDRequest := IDRequest{}
+	if err = DecodeIDRequest(request, &resultIDRequest); err != nil {
 		t.Fatal(err)
 	}
-	if resultRequest.ID != 1 {
-		t.Fatal(resultRequest)
+	if resultIDRequest.ID != 1 {
+		t.Fatal(resultIDRequest)
 	}
-	if len(resultRequest.Preloads) != 2 {
-		t.Fatal(resultRequest)
+	if len(resultIDRequest.Preloads) != 2 {
+		t.Fatal(resultIDRequest)
 	}
-	if resultRequest.Preloads[0] != "a" || resultRequest.Preloads[1] != "b" {
-		t.Fatal(resultRequest)
+	if resultIDRequest.Preloads[0] != "a" || resultIDRequest.Preloads[1] != "b" {
+		t.Fatal(resultIDRequest)
 	}
 }
 
@@ -42,16 +41,16 @@ func TestDecodeFilterRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resultRequest, err := DecodeFilterRequest(request)
-	if err != nil {
+	resultfilterRequest := FilterRequest{}
+	if err = DecodeBody(request, &resultfilterRequest); err != nil {
 		t.Fatal(err)
 	}
-	if resultRequest.Order != "id" {
-		t.Fatal(resultRequest)
+	if resultfilterRequest.Order != "id" {
+		t.Fatal(resultfilterRequest)
 	}
-	filter := resultRequest.Filters[0]
+	filter := resultfilterRequest.Filters[0]
 	if filter.Field != "A" || filter.Operate != FilterOperateEqual || filter.Value != "B" {
-		t.Fatal(resultRequest)
+		t.Fatal(resultfilterRequest)
 	}
 }
 
@@ -75,97 +74,20 @@ func TestDecodePageRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resultRequest, err := DecodePageRequest(request)
-	if err != nil {
+	resultPageRequest := PageRequest{}
+	if err = DecodeBody(request, &resultPageRequest); err != nil {
 		t.Fatal(err)
 	}
-	filterRequest := resultRequest.FilterRequest
+	filterRequest := resultPageRequest.FilterRequest
 	if filterRequest.Order != "id" {
-		t.Fatal(resultRequest)
+		t.Fatal(resultPageRequest)
 	}
 	filter := filterRequest.Filters[0]
 	if filter.Field != "A" || filter.Operate != FilterOperateEqual || filter.Value != "B" {
-		t.Fatal(resultRequest)
+		t.Fatal(resultPageRequest)
 	}
-	pagination := resultRequest.Pagination
+	pagination := resultPageRequest.Pagination
 	if pagination.PageSize != 0 || pagination.PageIndex != 1 || pagination.Total != 2 {
-		t.Fatal(resultRequest)
-	}
-}
-
-type TestModel struct {
-	Key   string
-	Value string
-}
-
-func TestDecodeModel(t *testing.T) {
-	test := TestModel{Key: "key", Value: "value"}
-	query, _ := json.Marshal(test)
-	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
-	if err != nil {
-		t.Fatal(err)
-	}
-	result, err := DecodeModel(request, reflect.TypeOf(test))
-	if err != nil {
-		t.Fatal(err)
-	}
-	check := result.(TestModel)
-	if check.Key != test.Key || check.Value != test.Value {
-		t.Fatal(check)
-	}
-}
-
-func TestDecodeModelPtr(t *testing.T) {
-	test := TestModel{Key: "key", Value: "value"}
-	query, _ := json.Marshal(test)
-	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
-	if err != nil {
-		t.Fatal(err)
-	}
-	result, err := DecodeModelPtr(request, reflect.TypeOf(test))
-	if err != nil {
-		t.Fatal(err)
-	}
-	check := result.(*TestModel)
-	if check.Key != test.Key || check.Value != test.Value {
-		t.Fatal(check)
-	}
-}
-
-func TestDecodeModelSlice(t *testing.T) {
-	tests := []TestModel{
-		{Key: "key", Value: "value"},
-	}
-	query, _ := json.Marshal(tests)
-	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
-	if err != nil {
-		t.Fatal(err)
-	}
-	result, err := DecodeModelSlice(request, reflect.TypeOf(TestModel{}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	checks := result.([]TestModel)
-	if checks[0].Key != tests[0].Key || checks[0].Value != tests[0].Value {
-		t.Fatal(checks)
-	}
-}
-
-func TestDecodeModelSlicePtr(t *testing.T) {
-	tests := []TestModel{
-		{Key: "key", Value: "value"},
-	}
-	query, _ := json.Marshal(tests)
-	request, err := http.NewRequest("POST", "", bytes.NewReader(query))
-	if err != nil {
-		t.Fatal(err)
-	}
-	result, err := DecodeModelSlicePtr(request, reflect.TypeOf(TestModel{}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	checks := result.(*[]TestModel)
-	if (*checks)[0].Key != tests[0].Key || (*checks)[0].Value != tests[0].Value {
-		t.Fatal(checks)
+		t.Fatal(resultPageRequest)
 	}
 }

@@ -1,12 +1,21 @@
 package gglmm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
+)
+
+// ErrFilter
+var (
+	ErrFilter          = errors.New("过滤参数错误")
+	ErrFilterValueType = errors.New("过滤值类型错误")
+	ErrFilterValueSize = errors.New("过滤值大小错误")
+	ErrFilterOperate   = errors.New("过滤操作错误")
 )
 
 // GormOpenConfig --

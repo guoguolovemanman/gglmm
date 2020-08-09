@@ -4,26 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"strings"
-
-	"github.com/jinzhu/gorm"
 )
 
 // error
 var (
-	ErrConfigFile        = errors.New("配置文件错误")
-	ErrRequest           = errors.New("请求参数错误")
-	ErrFilter            = errors.New("过滤参数错误")
-	ErrFilterValueType   = errors.New("过滤值类型错误")
-	ErrFilterValueSize   = errors.New("过滤值大小错误")
-	ErrFilterOperate     = errors.New("过滤操作错误")
-	ErrAction            = errors.New("不支持Action")
-	ErrModelType         = errors.New("模型类型错误")
-	ErrModelCanNotDelete = errors.New("模型不可删除")
-	ErrModelCanNotUpdate = errors.New("模型不可更新")
-	ErrPathVar           = errors.New("路径参数错误")
-
-	ErrGormRecordNotFound = gorm.ErrRecordNotFound
+	ErrConfigFile = errors.New("配置文件错误")
 )
 
 // ConfigInt8 整型配置
@@ -46,16 +33,17 @@ var (
 	Statuses      = []ConfigInt8{StatusValid, StatusFrozen, StatusInvalid}
 )
 
-// ConfigAPI --
-type ConfigAPI struct {
+// ConfigHTTP --
+type ConfigHTTP struct {
 	Address string
 }
 
 // Check --
-func (config ConfigAPI) Check() bool {
+func (config ConfigHTTP) Check() bool {
 	if config.Address == "" || !strings.Contains(config.Address, ":") {
 		return false
 	}
+	log.Println("ConfigHTTP check pass")
 	return true
 }
 
@@ -63,6 +51,7 @@ func (config ConfigAPI) Check() bool {
 type ConfigRPC struct {
 	Network string
 	Address string
+	Call    string
 }
 
 // Check --
@@ -73,6 +62,10 @@ func (config ConfigRPC) Check() bool {
 	if config.Address == "" || !strings.Contains(config.Address, ":") {
 		return false
 	}
+	if config.Call == "" {
+		return false
+	}
+	log.Println("ConfigRPC check pass")
 	return true
 }
 
@@ -105,6 +98,7 @@ func (config ConfigDB) Check() bool {
 	if config.MaxOpen <= 0 || config.MaxIdel <= 0 || config.ConnMaxLifetime <= 0 {
 		return false
 	}
+	log.Println("ConfigDB check pass")
 	return true
 }
 

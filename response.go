@@ -5,44 +5,62 @@ import (
 	"net/http"
 )
 
+// Resposne --
+const (
+	ResponseSuccessCode = 0
+	ResponseFailCode    = -1
+)
+
 // Response 响应
 type Response struct {
-	Code    int                    `json:"code"`
-	Message string                 `json:"message"`
-	Data    map[string]interface{} `json:"data"`
+	StatusCode   int                    `json:"statusCode"`
+	ErrorCode    int                    `json:"errorCode"`
+	ErrorMessage string                 `json:"errorMessage"`
+	Data         map[string]interface{} `json:"data"`
 }
 
 // ResponseOf --
-func ResponseOf(code int, message string) *Response {
+func ResponseOf(statusCode int, errorCode int, errorMessage string) *Response {
 	return &Response{
-		Code:    code,
-		Message: message,
+		StatusCode:   statusCode,
+		ErrorCode:    errorCode,
+		ErrorMessage: errorMessage,
 	}
 }
 
 // UnauthorizedResponse 输出验证失败
 func UnauthorizedResponse() *Response {
-	return ResponseOf(http.StatusUnauthorized, "")
+	return ResponseOf(http.StatusUnauthorized, http.StatusUnauthorized, "")
 }
 
 // ForbiddenResponse 输出权限失败
 func ForbiddenResponse() *Response {
-	return ResponseOf(http.StatusForbidden, "")
+	return ResponseOf(http.StatusForbidden, http.StatusForbidden, "")
 }
 
 // NotFoundResponse 输出不存在
 func NotFoundResponse() *Response {
-	return ResponseOf(http.StatusNotFound, "")
+	return ResponseOf(http.StatusNotFound, http.StatusNotFound, "")
 }
 
 // OkResponse --
 func OkResponse() *Response {
-	return ResponseOf(http.StatusOK, "")
+	return ResponseOf(http.StatusOK, ResponseSuccessCode, "")
 }
 
 // ErrorResponse --
-func ErrorResponse(message string) *Response {
-	return ResponseOf(http.StatusInternalServerError, message)
+func ErrorResponse(errorCode int, errorMessage string) *Response {
+	return ResponseOf(http.StatusInternalServerError, errorCode, errorMessage)
+}
+
+// SucessResponse --
+func SucessResponse() *Response {
+	return ResponseOf(http.StatusOK, ResponseSuccessCode, "")
+}
+
+// FailResponse --
+func FailResponse(errorMessage string) *Response {
+	return ResponseOf(http.StatusInternalServerError, ResponseFailCode, errorMessage)
 }
 
 // AddData 添加数据
@@ -55,9 +73,9 @@ func (response *Response) AddData(key string, value interface{}) *Response {
 }
 
 // JSON 输出JSON
-func (response *Response) JSON(w http.ResponseWriter) {
+func (response Response) JSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(response.Code)
+	w.WriteHeader(response.StatusCode)
 	json.NewEncoder(w).Encode(response)
 }
 

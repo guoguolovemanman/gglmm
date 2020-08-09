@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/rpc"
 
@@ -25,7 +26,8 @@ func testRPC() {
 	if err != nil {
 		log.Println("ExampleRPCService.Get", err)
 	} else {
-		log.Printf("Get: \n%+v", one)
+		jsonOne, _ := json.Marshal(one)
+		log.Printf("Get: \n%+v", string(jsonOne))
 	}
 
 	filterRequest := gglmm.FilterRequest{}
@@ -36,7 +38,8 @@ func testRPC() {
 	if err != nil {
 		log.Println("ExampleRPCService.List", err)
 	} else {
-		log.Printf("List: \n%+v", list)
+		jsonList, _ := json.Marshal(list)
+		log.Printf("Get: \n%+v", string(jsonList))
 	}
 }
 
