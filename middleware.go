@@ -24,7 +24,7 @@ type ErrFileLine struct {
 }
 
 func (err ErrFileLine) Error() string {
-	return fmt.Sprintf("file: %s; line: %s; message: %s", err.File, err.Line, err.Message)
+	return fmt.Sprintf("file: %s; line: %d; message: %s", err.File, err.Line, err.Message)
 }
 
 // NewErrFileLine --
