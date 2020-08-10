@@ -59,8 +59,19 @@ func SucessResponse() *Response {
 }
 
 // FailResponse --
-func FailResponse(errorMessage string) *Response {
-	return ResponseOf(http.StatusInternalServerError, ResponseFailCode, errorMessage)
+func FailResponse(param interface{}) *Response {
+	switch param := param.(type) {
+	case string:
+		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param)
+	case *ErrFileLine:
+		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param.Message).
+			AddData("file", param.File).
+			AddData("line", param.Line)
+	case error:
+		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param.Error())
+	default:
+		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, "未知错误")
+	}
 }
 
 // AddData 添加数据

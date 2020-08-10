@@ -16,29 +16,47 @@ type Middleware struct {
 	Func mux.MiddlewareFunc
 }
 
-// ErrPanic --
-type ErrPanic struct {
-	file    string
-	line    int
-	message string
+// ErrFileLine --
+type ErrFileLine struct {
+	File    string
+	Line    int
+	Message string
 }
 
-// Panic --
-func Panic(param interface{}) {
-	errPanic := ErrPanic{}
-	switch err := param.(type) {
-	case string:
-		errPanic.message = err
-	case error:
-		errPanic.message = err.Error()
-	default:
-		errPanic.message = "服务忙，请稍后再试"
-	}
+func (err ErrFileLine) Error() string {
+	return fmt.Sprintf("file: %s; line: %s; message: %s", err.File, err.Line, err.Message)
+}
+
+// NewErrFileLine --
+func NewErrFileLine(param interface{}) *ErrFileLine {
 	if _, file, line, ok := runtime.Caller(1); ok {
-		errPanic.file = file
-		errPanic.line = line
+		switch param := param.(type) {
+		case string:
+			return &ErrFileLine{
+				File:    file,
+				Line:    line,
+				Message: param,
+			}
+		case error:
+			return &ErrFileLine{
+				File:    file,
+				Line:    line,
+				Message: param.Error(),
+			}
+		default:
+			return &ErrFileLine{
+				File:    file,
+				Line:    line,
+				Message: "未知错误",
+			}
+		}
+	} else {
+		panic(&ErrFileLine{
+			File:    file,
+			Line:    line,
+			Message: "未知错误",
+		})
 	}
-	panic(errPanic)
 }
 
 // MiddlewarePanicResponser --
@@ -54,11 +72,11 @@ func MiddlewarePanicResponser() *Middleware {
 							ErrorResponse(ResponseFailCode, recover).
 								AddData("url", r.RequestURI).
 								JSON(w)
-						case ErrPanic:
-							ErrorResponse(ResponseFailCode, recover.message).
+						case *ErrFileLine:
+							ErrorResponse(ResponseFailCode, recover.Message).
 								AddData("url", r.RequestURI).
-								AddData("file", recover.file).
-								AddData("line", recover.line).
+								AddData("file", recover.File).
+								AddData("line", recover.Line).
 								JSON(w)
 						case error:
 							ErrorResponse(ResponseFailCode, "服务忙，请稍后再试").

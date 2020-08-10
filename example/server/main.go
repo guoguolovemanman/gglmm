@@ -75,7 +75,7 @@ func checkPermission(r *http.Request) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	log.Println(r.Method, r.URL.Path, authSubject.Type, authSubject.ID)
+	log.Println(r.Method, r.URL.Path, authSubject.UserType, authSubject.UserID)
 	return true, nil
 }
 

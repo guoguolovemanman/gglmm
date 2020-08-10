@@ -16,8 +16,8 @@ type ExampleUser struct {
 // Login --
 func (user ExampleUser) Login() *auth.Subject {
 	return &auth.Subject{
-		Type: "example",
-		ID:   0,
+		UserType: "example",
+		UserID:   0,
 	}
 }
 
@@ -27,7 +27,8 @@ func LoginAction(jwtExpires int64, jwtSecret string) http.HandlerFunc {
 		user := ExampleUser{}
 		authToken, _, err := auth.GenerateToken(user.Login(), jwtExpires, jwtSecret)
 		if err != nil {
-			gglmm.Panic(err)
+			gglmm.FailResponse(gglmm.NewErrFileLine(err)).JSON(w)
+			return
 		}
 		gglmm.OkResponse().
 			AddData("authToken", authToken).
