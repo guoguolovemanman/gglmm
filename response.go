@@ -53,8 +53,8 @@ func ErrorResponse(errorCode int, errorMessage string) *Response {
 	return ResponseOf(http.StatusInternalServerError, errorCode, errorMessage)
 }
 
-// SucessResponse --
-func SucessResponse() *Response {
+// SuccessResponse --
+func SuccessResponse() *Response {
 	return ResponseOf(http.StatusOK, ResponseSuccessCode, "")
 }
 
