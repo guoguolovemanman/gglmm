@@ -193,7 +193,7 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := service.GormDB.Get(model, filterRequest); err != nil {
+	if err := service.GormDB.Select(model, filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -259,7 +259,7 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err = service.GormDB.Store(model); err != nil {
+	if err = service.GormDB.Insert(model); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -304,7 +304,7 @@ func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := service.GormDB.Get(model, id); err != nil {
+	if err := service.GormDB.Select(model, id); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -338,7 +338,7 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.GormDB.Get(model, id); err != nil {
+		if err := service.GormDB.Select(model, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
@@ -382,7 +382,7 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.GormDB.Get(model, id); err != nil {
+		if err := service.GormDB.Select(model, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}

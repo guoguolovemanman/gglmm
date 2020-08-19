@@ -10,9 +10,9 @@ import (
 
 // error
 var (
-	ErrParams                = errors.New("参数错误")
-	ErrStoreFailNotNewRecord = errors.New("保存失败，不是新记录")
-	ErrUpdateID              = errors.New("更新失败")
+	ErrParams                 = errors.New("参数错误")
+	ErrInsertFailNotNewRecord = errors.New("保存失败，不是新记录")
+	ErrUpdateID               = errors.New("更新失败")
 )
 
 // GormDB 服务
@@ -54,8 +54,8 @@ func (gormDB *GormDB) primaryKeyValue(model interface{}) uint64 {
 	return 0
 }
 
-// Get 单个查询
-func (gormDB *GormDB) Get(model interface{}, request interface{}) error {
+// Select 查询
+func (gormDB *GormDB) Select(model interface{}, request interface{}) error {
 	switch request := request.(type) {
 	case uint64:
 		idRequest := &IDRequest{
@@ -134,10 +134,10 @@ func (gormDB *GormDB) Page(response *PageResponse, request *PageRequest) error {
 	return nil
 }
 
-// Store 保存
-func (gormDB *GormDB) Store(model interface{}) error {
+// Insert 保存
+func (gormDB *GormDB) Insert(model interface{}) error {
 	if !gormDB.NewRecord(model) {
-		return ErrStoreFailNotNewRecord
+		return ErrInsertFailNotNewRecord
 	}
 	if err := gormDB.Create(model).Error; err != nil {
 		return err

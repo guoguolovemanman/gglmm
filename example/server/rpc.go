@@ -29,7 +29,7 @@ func (service *ExampleRPCService) Actions(cmd string, resposne *gglmm.RPCActions
 
 // Get --
 func (service *ExampleRPCService) Get(idRequest *gglmm.IDRequest, example *example.Example) error {
-	err := service.gormDB.Get(example, idRequest)
+	err := service.gormDB.Select(example, idRequest)
 	if err != nil {
 		return err
 	}
