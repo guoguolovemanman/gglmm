@@ -41,6 +41,15 @@ type Filter struct {
 	Value   interface{} `json:"value"`
 }
 
+// NewFilter --
+func NewFilter(field string, operate string, value interface{}) *Filter {
+	return &Filter{
+		Field:   field,
+		Operate: operate,
+		Value:   value,
+	}
+}
+
 // Check --
 func (filter Filter) Check() bool {
 	if filter.Field == "" {
@@ -63,22 +72,17 @@ type IDRequest struct {
 
 // FilterRequest 分页请求
 type FilterRequest struct {
-	Filters  []Filter `json:"filters"`
-	Preloads []string `json:"preloads"`
-	Order    string   `json:"order"`
+	Filters  []*Filter `json:"filters"`
+	Preloads []string  `json:"preloads"`
+	Order    string    `json:"order"`
 }
 
 // AddFilter 添加过滤条件
 func (request *FilterRequest) AddFilter(field string, operate string, value interface{}) {
 	if request.Filters == nil {
-		request.Filters = make([]Filter, 0)
+		request.Filters = make([]*Filter, 0)
 	}
-	filter := Filter{
-		Field:   field,
-		Operate: operate,
-		Value:   value,
-	}
-	request.Filters = append(request.Filters, filter)
+	request.Filters = append(request.Filters, NewFilter(field, operate, value))
 }
 
 // Pagination 分页

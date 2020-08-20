@@ -22,12 +22,12 @@ func testRPC() {
 		ID: 1,
 	}
 	one := example.Example{}
-	err = client.Call("ExampleRPCService.Get", idRequest, &one)
+	err = client.Call("ExampleRPCService.First", idRequest, &one)
 	if err != nil {
-		log.Println("ExampleRPCService.Get", err)
+		log.Println("ExampleRPCService.First", err)
 	} else {
 		jsonOne, _ := json.Marshal(one)
-		log.Printf("Get: \n%+v", string(jsonOne))
+		log.Printf("First: \n%+v", string(jsonOne))
 	}
 
 	filterRequest := gglmm.FilterRequest{}
@@ -39,7 +39,7 @@ func testRPC() {
 		log.Println("ExampleRPCService.List", err)
 	} else {
 		jsonList, _ := json.Marshal(list)
-		log.Printf("Get: \n%+v", string(jsonList))
+		log.Printf("List: \n%+v", string(jsonList))
 	}
 }
 

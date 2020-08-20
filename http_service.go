@@ -30,8 +30,6 @@ const (
 	ActionCreate Action = "Create"
 	// ActionUpdate 更新整体
 	ActionUpdate Action = "Update"
-	// ActionUpdateFields 更新多个字段
-	ActionUpdateFields Action = "UpdateFields"
 	// ActionRemove 软删除
 	ActionRemove Action = "Remove"
 	// ActionRestore 恢复
@@ -47,17 +45,17 @@ var (
 	// ReadActions 读Action
 	ReadActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage}
 	// WriteActions 写Action
-	WriteActions = []Action{ActionCreate, ActionUpdate, ActionUpdateFields}
+	WriteActions = []Action{ActionCreate, ActionUpdate}
 	// DeleteActions 删除Action
 	DeleteActions = []Action{ActionRemove, ActionRestore, ActionDestory}
 	// AdminActions 管理Action
-	AdminActions = []Action{ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore}
+	AdminActions = []Action{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
 	// AllActions 所有Action
-	AllActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionUpdateFields, ActionRemove, ActionRestore, ActionDestory}
+	AllActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore, ActionDestory}
 )
 
 // FilterFunc 过滤函数
-type FilterFunc func(filters []Filter, r *http.Request) []Filter
+type FilterFunc func(filters []*Filter, r *http.Request) []*Filter
 
 // BeforeCreateFunc 保存前调用
 type BeforeCreateFunc func(interface{}) (interface{}, error)
@@ -70,7 +68,7 @@ type BeforeDeleteFunc func(interface{}) (interface{}, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
-	GormDB    *GormDB
+	gglmmDB   *DB
 	modelType reflect.Type
 	keys      [2]string
 
@@ -83,7 +81,7 @@ type HTTPService struct {
 // NewHTTPService 新建HTTP服务
 func NewHTTPService(model interface{}, keys [2]string) *HTTPService {
 	return &HTTPService{
-		GormDB:    DefaultGormDB(),
+		gglmmDB:   NewDB(),
 		modelType: reflect.TypeOf(model),
 		keys:      keys,
 	}
@@ -142,10 +140,6 @@ func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 		path = "/" + IDRegexp
 		handlerFunc = service.Update
 		methods = []string{"PUT", "POST"}
-	case ActionUpdateFields:
-		path = "/" + IDRegexp + "/fields"
-		handlerFunc = service.UpdateFields
-		methods = []string{"PATCH", "PUT", "POST"}
 	case ActionRemove:
 		path = "/" + IDRegexp + "/remove"
 		handlerFunc = service.Remove
@@ -173,7 +167,7 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := service.GormDB.GetByID(model, idRequest); err != nil {
+	if err := service.gglmmDB.First(model, idRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -184,8 +178,8 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 
 // First 单个
 func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
-	filterRequest := &FilterRequest{}
-	if err := DecodeBody(r, filterRequest); err != nil {
+	filterRequest := FilterRequest{}
+	if err := DecodeBody(r, &filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -193,7 +187,7 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err := service.GormDB.Select(model, filterRequest); err != nil {
+	if err := service.gglmmDB.First(model, filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -204,8 +198,8 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 
 // List 列表
 func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
-	filterRequest := &FilterRequest{}
-	if err := DecodeBody(r, filterRequest); err != nil {
+	filterRequest := FilterRequest{}
+	if err := DecodeBody(r, &filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -213,7 +207,7 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
 	models := reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err := service.GormDB.List(models, filterRequest); err != nil {
+	if err := service.gglmmDB.List(models, &filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -224,8 +218,8 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 
 // Page 分页
 func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
-	pageRequest := &PageRequest{}
-	if err := DecodeBody(r, pageRequest); err != nil {
+	pageRequest := PageRequest{}
+	if err := DecodeBody(r, &pageRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -234,7 +228,7 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 	}
 	pageResponse := &PageResponse{}
 	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err := service.GormDB.Page(pageResponse, pageRequest); err != nil {
+	if err := service.gglmmDB.Page(pageResponse, &pageRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -259,7 +253,7 @@ func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err = service.GormDB.Insert(model); err != nil {
+	if err = service.gglmmDB.Create(model); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -287,40 +281,7 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err = service.GormDB.Update(model, id); err != nil {
-		FailResponse(NewErrFileLine(err)).JSON(w)
-		return
-	}
-	OkResponse().
-		AddData(service.keys[0], model).
-		JSON(w)
-}
-
-// UpdateFields 更新整体
-func (service *HTTPService) UpdateFields(w http.ResponseWriter, r *http.Request) {
-	id, err := PathVarID(r)
-	if err != nil {
-		FailResponse(NewErrFileLine(err)).JSON(w)
-		return
-	}
-	model := reflect.New(service.modelType).Interface()
-	if err := service.GormDB.Select(model, id); err != nil {
-		FailResponse(NewErrFileLine(err)).JSON(w)
-		return
-	}
-	fields := reflect.New(service.modelType).Interface()
-	if err := DecodeBody(r, fields); err != nil {
-		FailResponse(NewErrFileLine(err)).JSON(w)
-		return
-	}
-	if service.beforeUpdateFunc != nil {
-		fields, err = service.beforeUpdateFunc(fields)
-		if err != nil {
-			FailResponse(NewErrFileLine(err)).JSON(w)
-			return
-		}
-	}
-	if err = service.GormDB.UpdateFields(model, id, fields); err != nil {
+	if err = service.gglmmDB.Update(model, id); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -338,7 +299,7 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.GormDB.Select(model, id); err != nil {
+		if err := service.gglmmDB.First(model, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
@@ -347,7 +308,7 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err = service.GormDB.Remove(model, id); err != nil {
+	if err = service.gglmmDB.Remove(model, id); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -364,7 +325,7 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	model := reflect.New(service.modelType).Interface()
-	if err = service.GormDB.Restore(model, id); err != nil {
+	if err = service.gglmmDB.Restore(model, id); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -382,7 +343,7 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 	}
 	model := reflect.New(service.modelType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.GormDB.Select(model, id); err != nil {
+		if err := service.gglmmDB.First(model, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
@@ -391,7 +352,7 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err = service.GormDB.Destroy(model, id); err != nil {
+	if err = service.gglmmDB.Destroy(model, id); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}

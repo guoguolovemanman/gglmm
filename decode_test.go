@@ -30,7 +30,7 @@ func TestDecodeIDRequest(t *testing.T) {
 
 func TestDecodeFilterRequest(t *testing.T) {
 	filterRequest := FilterRequest{
-		Filters: []Filter{
+		Filters: []*Filter{
 			{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 		},
 		Order: "id",
@@ -57,7 +57,7 @@ func TestDecodeFilterRequest(t *testing.T) {
 func TestDecodePageRequest(t *testing.T) {
 	pageRequest := PageRequest{
 		FilterRequest: &FilterRequest{
-			Filters: []Filter{
+			Filters: []*Filter{
 				{Field: "A", Operate: FilterOperateEqual, Value: "B"},
 			},
 			Order: "id",

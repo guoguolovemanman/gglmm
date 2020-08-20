@@ -18,6 +18,36 @@ var (
 	ErrFilterOperate   = errors.New("过滤操作错误")
 )
 
+var gormDB *gorm.DB = nil
+
+// RegisterGormDBConfig --
+func RegisterGormDBConfig(config ConfigDB) {
+	gormDB = GormOpenConfig(config)
+}
+
+// RegisterGormDB --
+func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) {
+	gormDB = GormOpen(dialect, url, maxOpen, maxIdle, connMaxLifetime)
+}
+
+// CloseGormDB --
+func CloseGormDB() {
+	if gormDB != nil {
+		gormDB.Close()
+	}
+}
+
+// ErrGormDBNotRegister --
+var ErrGormDBNotRegister = errors.New("请注册GromDB")
+
+// DefaultGormDB --
+func DefaultGormDB() *gorm.DB {
+	if nil == gormDB {
+		log.Fatal(ErrGormDBNotRegister)
+	}
+	return gormDB
+}
+
 // GormOpenConfig --
 func GormOpenConfig(config ConfigDB) *gorm.DB {
 	if !config.Check() {
@@ -67,7 +97,7 @@ func gormFilterRequest(db *gorm.DB, filterRequest *FilterRequest) (*gorm.DB, err
 	return db, nil
 }
 
-func gormFilters(db *gorm.DB, filters []Filter) (*gorm.DB, error) {
+func gormFilters(db *gorm.DB, filters []*Filter) (*gorm.DB, error) {
 	var err error
 	for _, filter := range filters {
 		db, err = gormFilter(db, filter)
@@ -78,7 +108,7 @@ func gormFilters(db *gorm.DB, filters []Filter) (*gorm.DB, error) {
 	return db, nil
 }
 
-func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
+func gormFilter(db *gorm.DB, filter *Filter) (*gorm.DB, error) {
 	if !filter.Check() {
 		return nil, ErrFilter
 	}
@@ -117,7 +147,7 @@ func gormFilter(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	}
 }
 
-func gormFilterIn(db *gorm.DB, filter Filter) (*gorm.DB, error) {
+func gormFilterIn(db *gorm.DB, filter *Filter) (*gorm.DB, error) {
 	values, ok := filter.Value.([]interface{})
 	if !ok {
 		return nil, ErrFilterValueType
@@ -125,7 +155,7 @@ func gormFilterIn(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	return db.Where(filter.Field+" in (?)", values), nil
 }
 
-func gormFilterBetween(db *gorm.DB, filter Filter) (*gorm.DB, error) {
+func gormFilterBetween(db *gorm.DB, filter *Filter) (*gorm.DB, error) {
 	values, ok := filter.Value.([]interface{})
 	if !ok {
 		return nil, ErrFilterValueType
@@ -144,7 +174,7 @@ func gormFilterBetween(db *gorm.DB, filter Filter) (*gorm.DB, error) {
 	}
 }
 
-func gormFilterLike(db *gorm.DB, filter Filter) (*gorm.DB, error) {
+func gormFilterLike(db *gorm.DB, filter *Filter) (*gorm.DB, error) {
 	stringValue, ok := filter.Value.(string)
 	if !ok {
 		return nil, ErrFilterValueType
