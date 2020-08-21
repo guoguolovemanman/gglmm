@@ -41,11 +41,11 @@ func (gglmmDB *DB) Begin() *gorm.DB {
 }
 
 func (gglmmDB *DB) preloadsGormDB(preloads []string) *gorm.DB {
-	db := gglmmDB.gormDB
+	gormDB := gglmmDB.gormDB
 	for _, preload := range preloads {
-		db = db.Preload(preload)
+		gormDB = gormDB.Preload(preload)
 	}
-	return db
+	return gormDB
 }
 
 func (gglmmDB *DB) primaryKeyValue(model interface{}) uint64 {

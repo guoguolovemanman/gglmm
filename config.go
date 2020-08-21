@@ -13,12 +13,6 @@ var (
 	ErrConfigFile = errors.New("配置文件错误")
 )
 
-// ConfigInt8 整型配置
-type ConfigInt8 struct {
-	Value int8   `json:"value"`
-	Name  string `json:"name"`
-}
-
 // ConfigString 字符配置
 type ConfigString struct {
 	Value string `json:"value"`
@@ -27,10 +21,10 @@ type ConfigString struct {
 
 // Status
 var (
-	StatusInvalid = ConfigInt8{Value: -128, Name: "无效"}
-	StatusFrozen  = ConfigInt8{Value: -127, Name: "冻结"}
-	StatusValid   = ConfigInt8{Value: 1, Name: "有效"}
-	Statuses      = []ConfigInt8{StatusValid, StatusFrozen, StatusInvalid}
+	StatusInvalid = ConfigString{Value: "invalid", Name: "无效"}
+	StatusFrozen  = ConfigString{Value: "frozen", Name: "冻结"}
+	StatusValid   = ConfigString{Value: "valid", Name: "有效"}
+	Statuses      = []ConfigString{StatusValid, StatusFrozen, StatusInvalid}
 )
 
 // ConfigHTTP --
