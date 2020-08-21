@@ -21,7 +21,7 @@ func main() {
 	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
 
 	jwtAuthExample := auth.MiddlewareJWTAuthChecker("example")
-	permissionMiddleware := gglmm.MiddlewarePermissionChecker(checkPermission)
+	permission := gglmm.MiddlewarePermissionChecker(checkPermission)
 
 	gglmm.UseTimeLogger(true, 300)
 
@@ -37,30 +37,30 @@ func main() {
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(jwtAuthExample, permissionMiddleware, readMiddleware, gglmm.ReadActions)
+		Action(jwtAuthExample, permission, readMiddleware, gglmm.ReadActions)
 
 	writeMiddleware := gglmm.Middleware{
 		Name: "WriteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(jwtAuthExample, permissionMiddleware, writeMiddleware, gglmm.WriteActions)
+		Action(jwtAuthExample, permission, writeMiddleware, gglmm.WriteActions)
 
 	deleteMiddleware := gglmm.Middleware{
 		Name: "DeleteMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTP("/example", exampleService).
-		Action(jwtAuthExample, permissionMiddleware, deleteMiddleware, gglmm.DeleteActions)
+		Action(jwtAuthExample, permission, deleteMiddleware, gglmm.DeleteActions)
 
 	exampleMiddleware := &gglmm.Middleware{
 		Name: "ExampleMiddleware",
 		Func: middlewareFunc,
 	}
 	gglmm.HandleHTTPAction("/example_action", exampleService.ExampleAction, "GET").
-		Middleware(jwtAuthExample, permissionMiddleware, exampleMiddleware)
+		Middleware(jwtAuthExample, permission, exampleMiddleware)
 	gglmm.HandleHTTPAction("/example_action", ExampleAction, "POST").
-		Middleware(jwtAuthExample, permissionMiddleware, exampleMiddleware)
+		Middleware(jwtAuthExample, permission, exampleMiddleware)
 
 	gglmm.HandleWS("/ws/once", OnceWSHandler)
 	gglmm.HandleWS("/ws/echo", EchoWSHandler)
@@ -70,13 +70,13 @@ func main() {
 	gglmm.ListenAndServe(":10000")
 }
 
-func checkPermission(r *http.Request) (bool, error) {
+func checkPermission(r *http.Request) error {
 	authSubject, err := auth.SubjectFrom(r)
 	if err != nil {
-		return false, err
+		return err
 	}
 	log.Println(r.Method, r.URL.Path, authSubject.UserType, authSubject.UserID)
-	return true, nil
+	return nil
 }
 
 func middlewareFunc(next http.Handler) http.Handler {

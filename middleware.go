@@ -98,7 +98,7 @@ func MiddlewarePanicResponser() *Middleware {
 }
 
 // PermissionCheckFunc --
-type PermissionCheckFunc func(r *http.Request) (bool, error)
+type PermissionCheckFunc func(r *http.Request) error
 
 // MiddlewarePermissionChecker --
 func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) *Middleware {
@@ -106,7 +106,7 @@ func MiddlewarePermissionChecker(checkPermission PermissionCheckFunc) *Middlewar
 		Name: "PermissionChecker",
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if result, err := checkPermission(r); !result || err != nil {
+				if err := checkPermission(r); err != nil {
 					log.Println(err)
 					ForbiddenResponse().JSON(w)
 					return
