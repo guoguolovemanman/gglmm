@@ -83,6 +83,6 @@ func registerRPC() {
 			rpcInfos = append(rpcInfos, action.String())
 		}
 		rpc.RegisterName(config.name, config.rpcHandler)
-		log.Printf("[ rpc] %s %s\n", config.name, strings.Join(rpcInfos, "; "))
+		log.Printf("[ rpc] %s [%s]\n", config.name, strings.Join(rpcInfos, "; "))
 	}
 }

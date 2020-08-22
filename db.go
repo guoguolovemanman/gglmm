@@ -128,7 +128,7 @@ func (gglmmDB *DB) List(models interface{}, filterRequest *FilterRequest) error 
 // Page 根据条件分页查询
 func (gglmmDB *DB) Page(response *PageResponse, request *PageRequest) error {
 	gormDB := gglmmDB.preloadsGormDB(request.Preloads)
-	gormDB, err := gormFilterRequest(gormDB, request.FilterRequest)
+	gormDB, err := gormFilterRequest(gormDB, &request.FilterRequest)
 	if err != nil {
 		return err
 	}
