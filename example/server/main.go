@@ -87,7 +87,7 @@ func middlewareFunc(next http.Handler) http.Handler {
 	})
 }
 
-func beforeCreate(model interface{}) (interface{}, error) {
+func beforeCreate(model interface{}, r *http.Request) (interface{}, error) {
 	log.Printf("%#v\n", model)
 	example, ok := model.(*example.Example)
 	if !ok {
@@ -97,7 +97,7 @@ func beforeCreate(model interface{}) (interface{}, error) {
 	return example, nil
 }
 
-func beforeUpdate(model interface{}) (interface{}, error) {
+func beforeUpdate(model interface{}, r *http.Request) (interface{}, error) {
 	example, ok := model.(*example.Example)
 	if !ok {
 		return nil, gglmm.ErrModelType

@@ -55,16 +55,16 @@ var (
 )
 
 // FilterFunc 过滤函数
-type FilterFunc func(filters []*Filter, r *http.Request) []*Filter
+type FilterFunc func([]*Filter, *http.Request) []*Filter
 
 // BeforeCreateFunc 保存前调用
-type BeforeCreateFunc func(interface{}) (interface{}, error)
+type BeforeCreateFunc func(interface{}, *http.Request) (interface{}, error)
 
 // BeforeUpdateFunc 更新前调用
-type BeforeUpdateFunc func(interface{}) (interface{}, error)
+type BeforeUpdateFunc func(interface{}, *http.Request) (interface{}, error)
 
 // BeforeDeleteFunc 删除前调用
-type BeforeDeleteFunc func(interface{}) (interface{}, error)
+type BeforeDeleteFunc func(interface{}, *http.Request) (interface{}, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
@@ -240,20 +240,20 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 
 // Store 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
-	var err error
 	model := reflect.New(service.modelType).Interface()
-	if err = DecodeBody(r, model); err != nil {
+	err := DecodeBody(r, model)
+	if err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	if service.beforeCreateFunc != nil {
-		model, err = service.beforeCreateFunc(model)
+		model, err = service.beforeCreateFunc(model, r)
 		if err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
 	}
-	if err = service.gglmmDB.Create(model); err != nil {
+	if err := service.gglmmDB.Create(model); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
@@ -275,7 +275,7 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if service.beforeUpdateFunc != nil {
-		model, err = service.beforeUpdateFunc(model)
+		model, err = service.beforeUpdateFunc(model, r)
 		if err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
@@ -303,7 +303,7 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
-		if _, err := service.beforeDeleteFunc(model); err != nil {
+		if _, err := service.beforeDeleteFunc(model, r); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
@@ -347,7 +347,7 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
-		if _, err := service.beforeDeleteFunc(model); err != nil {
+		if _, err := service.beforeDeleteFunc(model, r); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
