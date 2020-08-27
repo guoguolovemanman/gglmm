@@ -60,7 +60,7 @@ func (gglmmDB *DB) primaryKeyValue(model interface{}) uint64 {
 	return 0
 }
 
-// Create 保存
+// Create 新建
 func (gglmmDB *DB) Create(model interface{}) error {
 	if !gglmmDB.gormDB.NewRecord(model) {
 		return ErrNotNewRecord

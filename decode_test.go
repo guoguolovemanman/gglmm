@@ -14,7 +14,7 @@ func TestDecodeIDRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	resultIDRequest := IDRequest{}
-	if err = DecodeIDRequest(request, &resultIDRequest); err != nil {
+	if err = DecodeBody(request, &resultIDRequest); err != nil {
 		t.Fatal(err)
 	}
 	if resultIDRequest.ID != 1 {
@@ -41,16 +41,16 @@ func TestDecodeFilterRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resultfilterRequest := FilterRequest{}
-	if err = DecodeBody(request, &resultfilterRequest); err != nil {
+	resultFilterRequest := FilterRequest{}
+	if err = DecodeBody(request, &resultFilterRequest); err != nil {
 		t.Fatal(err)
 	}
-	if resultfilterRequest.Order != "id" {
-		t.Fatal(resultfilterRequest)
+	if resultFilterRequest.Order != "id" {
+		t.Fatal(resultFilterRequest)
 	}
-	filter := resultfilterRequest.Filters[0]
+	filter := resultFilterRequest.Filters[0]
 	if filter.Field != "A" || filter.Operate != FilterOperateEqual || filter.Value != "B" {
-		t.Fatal(resultfilterRequest)
+		t.Fatal(resultFilterRequest)
 	}
 }
 

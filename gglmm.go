@@ -58,8 +58,8 @@ func ListenAndServe(address string) {
 
 // ListenAndServeConfig 监听并服务
 func ListenAndServeConfig(config ConfigHTTP) {
-	if !config.Check() {
-		log.Fatal("ConfigHTTP invalid")
+	if config.TimeLoggerThreshold > 0 {
+		UseTimeLogger(true, config.TimeLoggerThreshold)
 	}
 	ListenAndServe(config.Address)
 }

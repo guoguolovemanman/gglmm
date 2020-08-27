@@ -50,10 +50,6 @@ func DefaultGormDB() *gorm.DB {
 
 // GormOpenConfig --
 func GormOpenConfig(config ConfigDB) *gorm.DB {
-	if !config.Check() {
-		log.Printf("%+v\n", config)
-		log.Fatal("DBConfig invalid")
-	}
 	connMaxLifetime, err := time.ParseDuration(fmt.Sprintf("%ds", config.ConnMaxLifetime))
 	if err != nil {
 		log.Fatal(err)

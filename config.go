@@ -29,7 +29,8 @@ var (
 
 // ConfigHTTP --
 type ConfigHTTP struct {
-	Address string
+	Address             string
+	TimeLoggerThreshold int64
 }
 
 // Check --

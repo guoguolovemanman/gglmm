@@ -17,24 +17,19 @@ var (
 // Action --
 type Action string
 
+// Action --
 const (
-	// ActionGetByID 根据ID拉取单个
 	ActionGetByID Action = "GetByID"
-	// ActionFirst 根据条件拉取单个
-	ActionFirst Action = "First"
-	// ActionList 列表
-	ActionList Action = "List"
-	// ActionPage 分页
-	ActionPage Action = "Page"
-	// ActionCreate 保存
-	ActionCreate Action = "Create"
-	// ActionUpdate 更新整体
-	ActionUpdate Action = "Update"
-	// ActionRemove 软删除
-	ActionRemove Action = "Remove"
-	// ActionRestore 恢复
+	ActionFirst   Action = "First"
+	ActionAdmin   Action = "Admin"
+	ActionList    Action = "List"
+	ActionPage    Action = "Page"
+	ActionCreate  Action = "Create"
+	ActionStore   Action = "Store"
+	ActionEdit    Action = "Edit"
+	ActionUpdate  Action = "Update"
+	ActionRemove  Action = "Remove"
 	ActionRestore Action = "Resotre"
-	// ActionDestory 硬删除
 	ActionDestory Action = "Destory"
 )
 
@@ -45,13 +40,9 @@ var (
 	// ReadActions 读Action
 	ReadActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage}
 	// WriteActions 写Action
-	WriteActions = []Action{ActionCreate, ActionUpdate}
+	WriteActions = []Action{ActionStore, ActionUpdate}
 	// DeleteActions 删除Action
 	DeleteActions = []Action{ActionRemove, ActionRestore, ActionDestory}
-	// AdminActions 管理Action
-	AdminActions = []Action{ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore}
-	// AllActions 所有Action
-	AllActions = []Action{ActionGetByID, ActionFirst, ActionList, ActionPage, ActionCreate, ActionUpdate, ActionRemove, ActionRestore, ActionDestory}
 )
 
 // FilterFunc 过滤函数
@@ -133,7 +124,7 @@ func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 		path = "/page"
 		handlerFunc = service.Page
 		methods = []string{"POST"}
-	case ActionCreate:
+	case ActionStore:
 		handlerFunc = service.Store
 		methods = []string{"POST"}
 	case ActionUpdate:
@@ -161,8 +152,8 @@ func (service *HTTPService) Action(action Action) (*HTTPAction, error) {
 
 // GetByID 单个
 func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
-	idRequest := &IDRequest{}
-	if err := DecodeIDRequest(r, idRequest); err != nil {
+	idRequest := IDRequest{}
+	if err := DecodeBody(r, &idRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
