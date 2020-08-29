@@ -20,34 +20,6 @@ var (
 
 var gormDB *gorm.DB = nil
 
-// RegisterGormDBConfig --
-func RegisterGormDBConfig(config ConfigDB) {
-	gormDB = GormOpenConfig(config)
-}
-
-// RegisterGormDB --
-func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) {
-	gormDB = GormOpen(dialect, url, maxOpen, maxIdle, connMaxLifetime)
-}
-
-// CloseGormDB --
-func CloseGormDB() {
-	if gormDB != nil {
-		gormDB.Close()
-	}
-}
-
-// ErrGormDBNotRegister --
-var ErrGormDBNotRegister = errors.New("请注册GromDB")
-
-// DefaultGormDB --
-func DefaultGormDB() *gorm.DB {
-	if nil == gormDB {
-		log.Fatal(ErrGormDBNotRegister)
-	}
-	return gormDB
-}
-
 // GormOpenConfig --
 func GormOpenConfig(config ConfigDB) *gorm.DB {
 	connMaxLifetime, err := time.ParseDuration(fmt.Sprintf("%ds", config.ConnMaxLifetime))
@@ -79,6 +51,41 @@ func GormOpen(dialect string, url string, maxOpen int, maxIdle int, connMaxLifet
 	sqlDB.SetMaxIdleConns(maxIdle)
 	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
+	return db
+}
+
+// RegisterGormDBConfig --
+func RegisterGormDBConfig(config ConfigDB) {
+	gormDB = GormOpenConfig(config)
+}
+
+// RegisterGormDB --
+func RegisterGormDB(dialect string, url string, maxOpen int, maxIdle int, connMaxLifetime time.Duration) {
+	gormDB = GormOpen(dialect, url, maxOpen, maxIdle, connMaxLifetime)
+}
+
+// CloseGormDB --
+func CloseGormDB() {
+	if gormDB != nil {
+		gormDB.Close()
+	}
+}
+
+// ErrGormDBNotRegister --
+var ErrGormDBNotRegister = errors.New("请注册GromDB")
+
+// DefaultGormDB --
+func DefaultGormDB() *gorm.DB {
+	if nil == gormDB {
+		log.Fatal(ErrGormDBNotRegister)
+	}
+	return gormDB
+}
+
+func gormPreloads(db *gorm.DB, preloads []string) *gorm.DB {
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
 	return db
 }
 

@@ -103,11 +103,10 @@ func MiddlewareTimeLogger(threshold int64) *Middleware {
 		Name: fmt.Sprintf("%s[%dms]", "TimeLogger", threshold),
 		Func: func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				start := time.Now().UnixNano()
+				start := time.Now()
 				defer func() {
-					end := time.Now().UnixNano()
-					elapsedTime := (end - start) / 1000 / 1000
-					if elapsedTime > threshold {
+					elapsedTime := time.Now().Sub(start)
+					if elapsedTime.Nanoseconds() > threshold {
 						log.Printf("%-8dms %8s %s", elapsedTime, r.Method, r.RequestURI)
 					}
 				}()

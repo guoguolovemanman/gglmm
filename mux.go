@@ -2,8 +2,10 @@ package gglmm
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -37,4 +39,16 @@ func PathVarID(r *http.Request) (uint64, error) {
 		return 0, err
 	}
 	return result, nil
+}
+
+func handleHTTPFunc(subrouter *mux.Router, path string, handlerFunc http.HandlerFunc, mathods ...string) {
+	subrouter.HandleFunc(path, handlerFunc).Methods(mathods...)
+}
+
+func logHTTP(methods []string, path string, middlewares []string) {
+	if len(middlewares) > 0 {
+		log.Printf("[http] [%-16s] %-60s %-80s\n", strings.Join(methods, ", "), basePath+path, strings.Join(middlewares, ", "))
+	} else {
+		log.Printf("[http] [%-16s] %-60s\n", strings.Join(methods, ", "), basePath+path)
+	}
 }

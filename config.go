@@ -10,7 +10,8 @@ import (
 
 // error
 var (
-	ErrConfigFile = errors.New("配置文件错误")
+	ErrConfig    = errors.New("配置错误")
+	ErrParameter = errors.New("参数错误")
 )
 
 // ConfigString 字符配置
@@ -30,7 +31,7 @@ var (
 // ConfigHTTP --
 type ConfigHTTP struct {
 	Address             string
-	TimeLoggerThreshold int64
+	TimeLoggerThreshold int64 //单位：纳秒
 }
 
 // Check --
@@ -113,7 +114,7 @@ func ParseConfigFile(file string, config ConfigChecker) error {
 		return err
 	}
 	if !config.Check() {
-		return ErrConfigFile
+		return ErrConfig
 	}
 	return nil
 }

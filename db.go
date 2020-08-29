@@ -9,10 +9,9 @@ import (
 
 // error
 var (
-	ErrParams       = errors.New("参数错误")
-	ErrNotNewRecord = errors.New("不是新记录")
-	ErrUpdateID     = errors.New("更新失败")
-	ErrDeleteID     = errors.New("删除失败")
+	ErrCreateNotNewRecord = errors.New("新建失败，已存在主键")
+	ErrUpdateID           = errors.New("更新失败，请设置主键")
+	ErrDeleteID           = errors.New("删除失败，请设置主键")
 )
 
 // DB --
@@ -38,22 +37,14 @@ func (gglmmDB *DB) NewRecord(model interface{}) bool {
 }
 
 // Begin --
-func (gglmmDB *DB) Begin() *gorm.DB {
+func (gglmmDB *DB) Begin(model interface{}) *gorm.DB {
 	return gglmmDB.gormDB.Begin()
-}
-
-func (gglmmDB *DB) preloadsGormDB(preloads []string) *gorm.DB {
-	gormDB := gglmmDB.gormDB
-	for _, preload := range preloads {
-		gormDB = gormDB.Preload(preload)
-	}
-	return gormDB
 }
 
 // Create 新建
 func (gglmmDB *DB) Create(model interface{}) error {
 	if !gglmmDB.gormDB.NewRecord(model) {
-		return ErrNotNewRecord
+		return ErrCreateNotNewRecord
 	}
 	if err := gglmmDB.gormDB.Create(model).Error; err != nil {
 		return err
@@ -78,12 +69,12 @@ func (gglmmDB *DB) First(model interface{}, request interface{}) error {
 	case *FilterRequest:
 		return gglmmDB.firstByFilter(model, request)
 	default:
-		return ErrParams
+		return ErrParameter
 	}
 }
 
 func (gglmmDB *DB) first(model interface{}, idRequest *IDRequest) error {
-	gormDB := gglmmDB.preloadsGormDB(idRequest.Preloads)
+	gormDB := gormPreloads(gglmmDB.gormDB, idRequest.Preloads)
 	if err := gormDB.First(model, idRequest.ID).Error; err != nil {
 		return err
 	}
@@ -91,7 +82,7 @@ func (gglmmDB *DB) first(model interface{}, idRequest *IDRequest) error {
 }
 
 func (gglmmDB *DB) firstByFilter(model interface{}, filterRequest *FilterRequest) error {
-	gormDB := gglmmDB.preloadsGormDB(filterRequest.Preloads)
+	gormDB := gormPreloads(gglmmDB.gormDB, filterRequest.Preloads)
 	gormDB, err := gormFilterRequest(gormDB, filterRequest)
 	if err != nil {
 		return err
@@ -104,7 +95,7 @@ func (gglmmDB *DB) firstByFilter(model interface{}, filterRequest *FilterRequest
 
 // List 根据条件列表查询
 func (gglmmDB *DB) List(models interface{}, filterRequest *FilterRequest) error {
-	gormDB := gglmmDB.preloadsGormDB(filterRequest.Preloads)
+	gormDB := gormPreloads(gglmmDB.gormDB, filterRequest.Preloads)
 	gormDB, err := gormFilterRequest(gormDB, filterRequest)
 	if err != nil {
 		return err
@@ -117,7 +108,7 @@ func (gglmmDB *DB) List(models interface{}, filterRequest *FilterRequest) error 
 
 // Page 根据条件分页查询
 func (gglmmDB *DB) Page(response *PageResponse, request *PageRequest) error {
-	gormDB := gglmmDB.preloadsGormDB(request.Preloads)
+	gormDB := gormPreloads(gglmmDB.gormDB, request.Preloads)
 	gormDB, err := gormFilterRequest(gormDB, &request.FilterRequest)
 	if err != nil {
 		return err
