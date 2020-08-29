@@ -14,7 +14,7 @@ func TestDecodeIDRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	resultIDRequest := IDRequest{}
-	if err = DecodeBody(request, &resultIDRequest); err != nil {
+	if err = DecodeIDRequest(request, &resultIDRequest); err != nil {
 		t.Fatal(err)
 	}
 	if resultIDRequest.ID != 1 {

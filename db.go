@@ -11,6 +11,7 @@ var (
 	ErrParams       = errors.New("参数错误")
 	ErrNotNewRecord = errors.New("不是新记录")
 	ErrUpdateID     = errors.New("更新失败")
+	ErrDeleteID     = errors.New("删除失败")
 )
 
 // DB --
@@ -46,18 +47,6 @@ func (gglmmDB *DB) preloadsGormDB(preloads []string) *gorm.DB {
 		gormDB = gormDB.Preload(preload)
 	}
 	return gormDB
-}
-
-func (gglmmDB *DB) primaryKeyValue(model interface{}) uint64 {
-	scope := gglmmDB.gormDB.NewScope(model)
-	key := scope.PrimaryKey()
-	if key == "id" {
-		value := scope.PrimaryKeyValue()
-		if value, ok := value.(uint64); ok {
-			return value
-		}
-	}
-	return 0
 }
 
 // Create 新建
@@ -150,8 +139,12 @@ func (gglmmDB *DB) Page(response *PageResponse, request *PageRequest) error {
 }
 
 // Update 更新整体
-func (gglmmDB *DB) Update(model interface{}, id uint64) error {
-	if id != gglmmDB.primaryKeyValue(model) {
+func (gglmmDB *DB) Update(model interface{}) error {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return ErrUpdateID
+	}
+	id := PrimaryKeyValue(model)
+	if id <= 0 {
 		return ErrUpdateID
 	}
 	if err := gglmmDB.gormDB.Save(model).Error; err != nil {
@@ -164,8 +157,12 @@ func (gglmmDB *DB) Update(model interface{}, id uint64) error {
 }
 
 // Updates 更新多个属性
-func (gglmmDB *DB) Updates(model interface{}, id uint64, fields map[string]interface{}) error {
-	if id != gglmmDB.primaryKeyValue(model) {
+func (gglmmDB *DB) Updates(model interface{}, fields map[string]interface{}) error {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return ErrUpdateID
+	}
+	id := PrimaryKeyValue(model)
+	if id <= 0 {
 		return ErrUpdateID
 	}
 	if err := gglmmDB.gormDB.Model(model).Updates(fields).Error; err != nil {
@@ -178,8 +175,15 @@ func (gglmmDB *DB) Updates(model interface{}, id uint64, fields map[string]inter
 }
 
 // Remove 软删除
-func (gglmmDB *DB) Remove(model interface{}, id uint64) error {
-	if err := gglmmDB.gormDB.Delete(model, "id = ?", id).Error; err != nil {
+func (gglmmDB *DB) Remove(model interface{}) error {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return ErrDeleteID
+	}
+	id := PrimaryKeyValue(model)
+	if id <= 0 {
+		return ErrDeleteID
+	}
+	if err := gglmmDB.gormDB.Delete(model).Error; err != nil {
 		return err
 	}
 	if err := gglmmDB.gormDB.Unscoped().First(model, id).Error; err != nil {
@@ -189,8 +193,15 @@ func (gglmmDB *DB) Remove(model interface{}, id uint64) error {
 }
 
 // Restore 恢复
-func (gglmmDB *DB) Restore(model interface{}, id uint64) error {
-	if err := gglmmDB.gormDB.Unscoped().Model(model).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+func (gglmmDB *DB) Restore(model interface{}) error {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return ErrDeleteID
+	}
+	id := PrimaryKeyValue(model)
+	if id <= 0 {
+		return ErrDeleteID
+	}
+	if err := gglmmDB.gormDB.Unscoped().Model(model).Update("deleted_at", nil).Error; err != nil {
 		return err
 	}
 	if err := gglmmDB.gormDB.First(model, id).Error; err != nil {
@@ -200,8 +211,15 @@ func (gglmmDB *DB) Restore(model interface{}, id uint64) error {
 }
 
 // Destroy 直接删除
-func (gglmmDB *DB) Destroy(model interface{}, id uint64) error {
-	if err := gglmmDB.gormDB.Unscoped().Delete(model, "id = ?", id).Error; err != nil {
+func (gglmmDB *DB) Destroy(model interface{}) error {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return ErrDeleteID
+	}
+	id := PrimaryKeyValue(model)
+	if id <= 0 {
+		return ErrDeleteID
+	}
+	if err := gglmmDB.gormDB.Unscoped().Delete(model).Error; err != nil {
 		return err
 	}
 	return nil

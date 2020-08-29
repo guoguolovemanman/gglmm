@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-func decodeIDRequest(r *http.Request, idRequest *IDRequest) error {
+// DecodeIDRequest --
+func DecodeIDRequest(r *http.Request, idRequest *IDRequest) error {
 	id, err := PathVarID(r)
 	if err != nil {
 		idQuery := r.FormValue("id")
@@ -33,17 +34,10 @@ func decodeIDRequest(r *http.Request, idRequest *IDRequest) error {
 
 // DecodeBody 解码请求体
 func DecodeBody(r *http.Request, body interface{}) error {
-	switch body := body.(type) {
-	case *IDRequest:
-		if err := decodeIDRequest(r, body); err != nil {
-			return err
-		}
-	default:
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(body); err != nil {
-			if err != io.EOF {
-				return ErrRequest
-			}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(body); err != nil {
+		if err != io.EOF {
+			return ErrRequest
 		}
 	}
 	return nil

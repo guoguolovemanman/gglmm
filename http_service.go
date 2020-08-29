@@ -59,9 +59,9 @@ type BeforeDeleteFunc func(interface{}, *http.Request) (interface{}, error)
 
 // HTTPService HTTP服务
 type HTTPService struct {
-	gglmmDB   *DB
-	modelType reflect.Type
-	keys      [2]string
+	gglmmDB    *DB
+	entityType reflect.Type
+	keys       [2]string
 
 	filterFunc       FilterFunc
 	beforeCreateFunc BeforeCreateFunc
@@ -70,11 +70,11 @@ type HTTPService struct {
 }
 
 // NewHTTPService 新建HTTP服务
-func NewHTTPService(model interface{}, keys [2]string) *HTTPService {
+func NewHTTPService(entity Entity, keys [2]string) *HTTPService {
 	return &HTTPService{
-		gglmmDB:   NewDB(),
-		modelType: reflect.TypeOf(model),
-		keys:      keys,
+		gglmmDB:    NewDB(),
+		entityType: reflect.TypeOf(entity),
+		keys:       keys,
 	}
 }
 
@@ -157,13 +157,13 @@ func (service *HTTPService) GetByID(w http.ResponseWriter, r *http.Request) {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
-	model := reflect.New(service.modelType).Interface()
-	if err := service.gglmmDB.First(model, idRequest); err != nil {
+	entity := reflect.New(service.entityType).Interface()
+	if err := service.gglmmDB.First(entity, idRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -177,13 +177,13 @@ func (service *HTTPService) First(w http.ResponseWriter, r *http.Request) {
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
-	model := reflect.New(service.modelType).Interface()
-	if err := service.gglmmDB.First(model, filterRequest); err != nil {
+	entity := reflect.New(service.entityType).Interface()
+	if err := service.gglmmDB.First(entity, filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -197,13 +197,13 @@ func (service *HTTPService) List(w http.ResponseWriter, r *http.Request) {
 	if service.filterFunc != nil {
 		filterRequest.Filters = service.filterFunc(filterRequest.Filters, r)
 	}
-	models := reflect.New(reflect.SliceOf(service.modelType)).Interface()
-	if err := service.gglmmDB.List(models, &filterRequest); err != nil {
+	entities := reflect.New(reflect.SliceOf(service.entityType)).Interface()
+	if err := service.gglmmDB.List(entities, &filterRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[1], models).
+		AddData(service.keys[1], entities).
 		JSON(w)
 }
 
@@ -218,7 +218,7 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 		pageRequest.Filters = service.filterFunc(pageRequest.Filters, r)
 	}
 	pageResponse := &PageResponse{}
-	pageResponse.List = reflect.New(reflect.SliceOf(service.modelType)).Interface()
+	pageResponse.List = reflect.New(reflect.SliceOf(service.entityType)).Interface()
 	if err := service.gglmmDB.Page(pageResponse, &pageRequest); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
@@ -231,25 +231,25 @@ func (service *HTTPService) Page(w http.ResponseWriter, r *http.Request) {
 
 // Store 保存
 func (service *HTTPService) Store(w http.ResponseWriter, r *http.Request) {
-	model := reflect.New(service.modelType).Interface()
-	err := DecodeBody(r, model)
+	entity := reflect.New(service.entityType).Interface()
+	err := DecodeBody(r, entity)
 	if err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	if service.beforeCreateFunc != nil {
-		model, err = service.beforeCreateFunc(model, r)
+		entity, err = service.beforeCreateFunc(entity, r)
 		if err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
 	}
-	if err := service.gglmmDB.Create(model); err != nil {
+	if err := service.gglmmDB.Create(entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -260,24 +260,25 @@ func (service *HTTPService) Update(w http.ResponseWriter, r *http.Request) {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
-	model := reflect.New(service.modelType).Interface()
-	if err = DecodeBody(r, model); err != nil {
+	entity := reflect.New(service.entityType).Interface()
+	if err = DecodeBody(r, entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
+	SetPrimaryKeyValue(entity, id)
 	if service.beforeUpdateFunc != nil {
-		model, err = service.beforeUpdateFunc(model, r)
+		entity, err = service.beforeUpdateFunc(entity, r)
 		if err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
 	}
-	if err = service.gglmmDB.Update(model, id); err != nil {
+	if err = service.gglmmDB.Update(entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -288,23 +289,25 @@ func (service *HTTPService) Remove(w http.ResponseWriter, r *http.Request) {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
-	model := reflect.New(service.modelType).Interface()
+	entity := reflect.New(service.entityType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.gglmmDB.First(model, id); err != nil {
+		if err := service.gglmmDB.First(entity, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
-		if _, err := service.beforeDeleteFunc(model, r); err != nil {
+		if _, err := service.beforeDeleteFunc(entity, r); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
+	} else {
+		SetPrimaryKeyValue(entity, id)
 	}
-	if err = service.gglmmDB.Remove(model, id); err != nil {
+	if err = service.gglmmDB.Remove(entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -315,13 +318,14 @@ func (service *HTTPService) Restore(w http.ResponseWriter, r *http.Request) {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
-	model := reflect.New(service.modelType).Interface()
-	if err = service.gglmmDB.Restore(model, id); err != nil {
+	entity := reflect.New(service.entityType).Interface()
+	SetPrimaryKeyValue(entity, id)
+	if err = service.gglmmDB.Restore(entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
 	OkResponse().
-		AddData(service.keys[0], model).
+		AddData(service.keys[0], entity).
 		JSON(w)
 }
 
@@ -332,18 +336,20 @@ func (service *HTTPService) Destory(w http.ResponseWriter, r *http.Request) {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}
-	model := reflect.New(service.modelType).Interface()
+	entity := reflect.New(service.entityType).Interface()
 	if service.beforeDeleteFunc != nil {
-		if err := service.gglmmDB.First(model, id); err != nil {
+		if err := service.gglmmDB.First(entity, id); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
-		if _, err := service.beforeDeleteFunc(model, r); err != nil {
+		if _, err := service.beforeDeleteFunc(entity, r); err != nil {
 			FailResponse(NewErrFileLine(err)).JSON(w)
 			return
 		}
+	} else {
+		SetPrimaryKeyValue(entity, id)
 	}
-	if err = service.gglmmDB.Destroy(model, id); err != nil {
+	if err = service.gglmmDB.Destroy(entity); err != nil {
 		FailResponse(NewErrFileLine(err)).JSON(w)
 		return
 	}

@@ -15,7 +15,7 @@ var (
 
 // ConfigString 字符配置
 type ConfigString struct {
-	Value string `json:"value"`
+	Value string `json:"key"`
 	Name  string `json:"name"`
 }
 
