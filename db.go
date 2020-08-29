@@ -2,6 +2,7 @@ package gglmm
 
 import (
 	"errors"
+	"log"
 
 	"github.com/jinzhu/gorm"
 )
@@ -145,6 +146,7 @@ func (gglmmDB *DB) Update(model interface{}) error {
 	}
 	id := PrimaryKeyValue(model)
 	if id <= 0 {
+		log.Println("PrimaryKeyValue")
 		return ErrUpdateID
 	}
 	if err := gglmmDB.gormDB.Save(model).Error; err != nil {

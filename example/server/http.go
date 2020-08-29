@@ -45,7 +45,7 @@ type ExampleService struct {
 // NewExampleService --
 func NewExampleService() *ExampleService {
 	return &ExampleService{
-		HTTPService: gglmm.NewHTTPService(&example.Example{}, [...]string{"example", "examples"}),
+		HTTPService: gglmm.NewHTTPService(example.Example{}, [...]string{"example", "examples"}),
 	}
 }
 
