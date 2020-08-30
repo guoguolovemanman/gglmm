@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	auth "github.com/weihongguo/gglmm-auth"
 )
 
 func testHTTP() {
@@ -25,8 +27,16 @@ func testHTTP() {
 	}
 	log.Print(string(result))
 
+	client := &http.Client{}
+
 	// 取登录态
-	response, err = http.Get("http://localhost:10000/api/login")
+	loginRequest := auth.LoginRequest{
+		UserName: "example",
+		Password: "example",
+	}
+	body, err := json.Marshal(loginRequest)
+	request, err := http.NewRequest("POST", "http://localhost:10000/api/login", bytes.NewReader(body))
+	response, err = client.Do(request)
 	if err != nil {
 		log.Println("http", err)
 		return
@@ -39,13 +49,14 @@ func testHTTP() {
 		return
 	}
 
-	loginResult := make(map[string]interface{})
-	err = json.Unmarshal(result, &loginResult)
+	loginRespone := make(map[string]interface{})
+	err = json.Unmarshal(result, &loginRespone)
 	if err != nil {
 		log.Println("json", err)
 		return
 	}
-	data, ok := loginResult["data"]
+	log.Println("loginRespone", loginRespone)
+	data, ok := loginRespone["data"]
 	if !ok {
 		log.Println("login fail")
 		return
@@ -64,16 +75,14 @@ func testHTTP() {
 
 	// 带上登录态请求
 
-	client := &http.Client{}
-
 	// create
 	example := example.Example{
 		IntValue:    1,
 		StringValue: "1",
 		FloatValue:  1.1,
 	}
-	body, err := json.Marshal(example)
-	request, err := http.NewRequest("POST", "http://localhost:10000/api/example", bytes.NewReader(body))
+	body, err = json.Marshal(example)
+	request, err = http.NewRequest("POST", "http://localhost:10000/api/example", bytes.NewReader(body))
 	request.Header.Add("Authorization", "Bearer "+token)
 	response, err = client.Do(request)
 	if err != nil {

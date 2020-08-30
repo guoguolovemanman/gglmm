@@ -17,14 +17,15 @@ func main() {
 
 	gglmm.BasePath("/api")
 
-	// 认证中间间
-	// authenticationMiddlerware := gglmm.authenticationMiddlerware("example")
-
 	jwtAuthExample := auth.MiddlewareJWTAuthChecker("example")
 
 	gglmm.UseTimeLogger(true, 300)
 
-	gglmm.HandleHTTPAction("/login", LoginAction(3600, "example"), "GET", "POST")
+	exampleUserLoginService := auth.NewLoginService(auth.ConfigJWT{
+		Secret:  "example",
+		Expires: 30000000,
+	}, &ExampleUser{})
+	gglmm.HandleHTTPAction("/login", exampleUserLoginService.Login, "POST")
 
 	exampleService := NewExampleService()
 	exampleService.
@@ -70,11 +71,11 @@ func main() {
 }
 
 func checkPermission(r *http.Request) error {
-	authSubject, err := auth.SubjectFrom(r)
+	userType, userID, err := auth.UserTypeID(r)
 	if err != nil {
 		return err
 	}
-	log.Println(r.Method, r.URL.Path, authSubject.UserType, authSubject.UserID)
+	log.Println(r.Method, r.URL.Path, userType, userID)
 	return nil
 }
 

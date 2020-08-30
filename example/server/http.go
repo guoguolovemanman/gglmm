@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	example "gglmm-example"
@@ -14,27 +15,28 @@ type ExampleUser struct {
 	gglmm.Model
 }
 
-// Login --
-func (user ExampleUser) Login() *auth.Subject {
-	return &auth.Subject{
-		UserType: "example",
-		UserID:   0,
-	}
+func (user *ExampleUser) authInfo() (*auth.Info, error) {
+	return &auth.Info{
+		Subject: &auth.Subject{
+			Project:  "example",
+			UserType: "example",
+			UserID:   1,
+		},
+		Nickname:  "example",
+		AvatarURL: "example",
+	}, nil
 }
 
-// LoginAction --
-func LoginAction(jwtExpires int64, jwtSecret string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user := ExampleUser{}
-		authToken, _, err := auth.GenerateToken(user.Login(), jwtExpires, jwtSecret)
-		if err != nil {
-			gglmm.FailResponse(gglmm.NewErrFileLine(err)).JSON(w)
-			return
-		}
-		gglmm.OkResponse().
-			AddData("authToken", authToken).
-			JSON(w)
-	}
+// Login --
+func (user *ExampleUser) Login(request *auth.LoginRequest) (*auth.Info, error) {
+	log.Println("ExampleUser.Login")
+	return user.authInfo()
+}
+
+// Info --
+func (user *ExampleUser) Info(request *gglmm.IDRequest) (*auth.Info, error) {
+	log.Println("ExampleUser.Info")
+	return user.authInfo()
 }
 
 // ExampleService --
