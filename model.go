@@ -2,8 +2,8 @@ package gglmm
 
 import "time"
 
-// Entity --
-type Entity interface {
+// DBModel --
+type DBModel interface {
 	PrimaryKeyValue() uint64
 	SetPrimaryKeyValue(uint64)
 }
@@ -28,15 +28,15 @@ func (model *Model) SetPrimaryKeyValue(id uint64) {
 
 // PrimaryKeyValue --
 func PrimaryKeyValue(model interface{}) uint64 {
-	if entity, ok := model.(Entity); ok {
-		return entity.PrimaryKeyValue()
+	if dbModel, ok := model.(DBModel); ok {
+		return dbModel.PrimaryKeyValue()
 	}
 	return 0
 }
 
 // SetPrimaryKeyValue --
 func SetPrimaryKeyValue(model interface{}, id uint64) {
-	if entity, ok := model.(Entity); ok {
-		entity.SetPrimaryKeyValue(id)
+	if dbModel, ok := model.(DBModel); ok {
+		dbModel.SetPrimaryKeyValue(id)
 	}
 }

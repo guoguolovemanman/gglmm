@@ -2,7 +2,6 @@ package gglmm
 
 import (
 	"errors"
-	"log"
 
 	"github.com/jinzhu/gorm"
 )
@@ -36,8 +35,15 @@ func (gglmmDB *DB) NewRecord(model interface{}) bool {
 	return gglmmDB.gormDB.NewRecord(model)
 }
 
+func (gglmmDB *DB) primaryKeyValue(model interface{}) uint64 {
+	if gglmmDB.gormDB.NewRecord(model) {
+		return 0
+	}
+	return PrimaryKeyValue(model)
+}
+
 // Begin --
-func (gglmmDB *DB) Begin(model interface{}) *gorm.DB {
+func (gglmmDB *DB) Begin() *gorm.DB {
 	return gglmmDB.gormDB.Begin()
 }
 
@@ -132,12 +138,8 @@ func (gglmmDB *DB) Page(response *PageResponse, request *PageRequest) error {
 
 // Update 更新整体
 func (gglmmDB *DB) Update(model interface{}) error {
-	if gglmmDB.gormDB.NewRecord(model) {
-		return ErrUpdateID
-	}
-	id := PrimaryKeyValue(model)
+	id := gglmmDB.primaryKeyValue(model)
 	if id <= 0 {
-		log.Println("PrimaryKeyValue")
 		return ErrUpdateID
 	}
 	if err := gglmmDB.gormDB.Save(model).Error; err != nil {
@@ -151,10 +153,7 @@ func (gglmmDB *DB) Update(model interface{}) error {
 
 // Updates 更新多个属性
 func (gglmmDB *DB) Updates(model interface{}, fields map[string]interface{}) error {
-	if gglmmDB.gormDB.NewRecord(model) {
-		return ErrUpdateID
-	}
-	id := PrimaryKeyValue(model)
+	id := gglmmDB.primaryKeyValue(model)
 	if id <= 0 {
 		return ErrUpdateID
 	}
@@ -169,10 +168,7 @@ func (gglmmDB *DB) Updates(model interface{}, fields map[string]interface{}) err
 
 // Remove 软删除
 func (gglmmDB *DB) Remove(model interface{}) error {
-	if gglmmDB.gormDB.NewRecord(model) {
-		return ErrDeleteID
-	}
-	id := PrimaryKeyValue(model)
+	id := gglmmDB.primaryKeyValue(model)
 	if id <= 0 {
 		return ErrDeleteID
 	}
@@ -187,10 +183,7 @@ func (gglmmDB *DB) Remove(model interface{}) error {
 
 // Restore 恢复
 func (gglmmDB *DB) Restore(model interface{}) error {
-	if gglmmDB.gormDB.NewRecord(model) {
-		return ErrDeleteID
-	}
-	id := PrimaryKeyValue(model)
+	id := gglmmDB.primaryKeyValue(model)
 	if id <= 0 {
 		return ErrDeleteID
 	}
@@ -205,10 +198,7 @@ func (gglmmDB *DB) Restore(model interface{}) error {
 
 // Destroy 直接删除
 func (gglmmDB *DB) Destroy(model interface{}) error {
-	if gglmmDB.gormDB.NewRecord(model) {
-		return ErrDeleteID
-	}
-	id := PrimaryKeyValue(model)
+	id := gglmmDB.primaryKeyValue(model)
 	if id <= 0 {
 		return ErrDeleteID
 	}
