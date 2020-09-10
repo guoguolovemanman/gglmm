@@ -62,15 +62,15 @@ func SuccessResponse() *Response {
 func FailResponse(param interface{}) *Response {
 	switch param := param.(type) {
 	case string:
-		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param)
+		return ErrorResponse(ResponseFailCode, param)
 	case *ErrFileLine:
-		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param.Message).
+		return ErrorResponse(ResponseFailCode, param.Message).
 			AddData("file", param.File).
 			AddData("line", param.Line)
 	case error:
-		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, param.Error())
+		return ErrorResponse(ResponseFailCode, param.Error())
 	default:
-		return ResponseOf(http.StatusInternalServerError, ResponseFailCode, "未知错误")
+		return ErrorResponse(ResponseFailCode, "未知错误")
 	}
 }
 
