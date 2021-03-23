@@ -107,7 +107,7 @@ func MiddlewareTimeLogger(threshold int64) *Middleware {
 				defer func() {
 					elapsedTime := time.Now().Sub(start)
 					if elapsedTime.Nanoseconds() > threshold {
-						log.Printf("%-8dms %8s %s", elapsedTime, r.Method, r.RequestURI)
+						log.Printf("%-8dms %8s %s", elapsedTime.Nanoseconds()/1000/1000, r.Method, r.RequestURI)
 					}
 				}()
 				next.ServeHTTP(w, r)

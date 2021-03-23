@@ -47,8 +47,8 @@ func handleHTTPFunc(subrouter *mux.Router, path string, handlerFunc http.Handler
 
 func logHTTP(methods []string, path string, middlewares []string) {
 	if len(middlewares) > 0 {
-		log.Printf("[http] [%-16s] %-60s %-80s\n", strings.Join(methods, ", "), basePath+path, strings.Join(middlewares, ", "))
+		log.Printf("[http] [%-12s] %-60s %-80s\n", strings.Join(methods, ", "), basePath+path, strings.Join(middlewares, ", "))
 	} else {
-		log.Printf("[http] [%-16s] %-60s\n", strings.Join(methods, ", "), basePath+path)
+		log.Printf("[http] [%-12s] %-60s\n", strings.Join(methods, ", "), basePath+path)
 	}
 }
